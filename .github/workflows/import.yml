@@ -1,0 +1,40 @@
+name: Import Fonte source files
+on:
+  push:
+    paths:
+      - 'fonte-import.txt'
+      - '.github/workflows/import.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-fonte:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Extract source and generate wrapper
+        shell: bash
+        run: |
+          test -s fonte-import.txt
+          base64 --decode fonte-import.txt | tar -xJ
+          gradle wrapper --gradle-version 8.14.3
+          chmod +x gradlew
+          rm fonte-import.txt .github/workflows/import.yml
+      - name: Commit imported sources
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import complete Fonte Android project"
+          git push origin HEAD:main
+      - name: Build and test
+        shell: bash
+        run: ./gradlew test assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fonte-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
