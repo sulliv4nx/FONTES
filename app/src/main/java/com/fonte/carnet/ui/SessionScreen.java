@@ -65,20 +65,28 @@ public class SessionScreen extends Screen {
         top.addView(restButton);
         root.addView(top, Ui.lp(-1, -2));
 
-        restBar = Ui.hbox(a);
-        restBar.setBackground(Ui.rect(Ui.ACCENT_SOFT, 14));
-        restBar.setPadding(Ui.dp(14), Ui.dp(8), Ui.dp(8), Ui.dp(8));
+        // Disposition en deux lignes, accessible même sur un petit écran Samsung.
+        restBar = Ui.vbox(a);
+        restBar.setBackground(Ui.outline(Ui.SURFACE2, Ui.LINE, 14));
+        restBar.setPadding(Ui.dp(14), Ui.dp(10), Ui.dp(14), Ui.dp(10));
+        LinearLayout timerLine = Ui.hbox(a);
         ImageView timer = new ImageView(a);
         timer.setImageDrawable(new Icon(Icon.TIMER, Ui.ACCENT));
-        restBar.addView(timer, Ui.lp(Ui.dp(24), Ui.dp(24)));
-        restText = Ui.medium(a, "", 20, Ui.ACCENT);
+        timerLine.addView(timer, Ui.lp(Ui.dp(24), Ui.dp(24)));
+        restText = Ui.medium(a, "", 18, Ui.ACCENT);
         Ui.tabular(restText);
         restText.setPadding(Ui.dp(10), 0, 0, 0);
-        restBar.addView(restText, Ui.weight(1));
-        restBar.addView(Ui.chip(a, "+30 s", false, v -> a.addRest(30)));
+        timerLine.addView(restText, Ui.lp(-2, -2));
+        restBar.addView(timerLine);
+        LinearLayout actions = Ui.hbox(a);
+        actions.setPadding(0, Ui.dp(6), 0, 0);
+        TextView moreRest = Ui.chip(a, "+30 secondes", false, v -> a.addRest(30));
         TextView skip = Ui.chip(a, "Passer", false, v -> a.stopRest());
-        skip.setLayoutParams(Ui.lp(-2, -2));
-        restBar.addView(skip);
+        LinearLayout.LayoutParams first = new LinearLayout.LayoutParams(0, -2, 1);
+        first.rightMargin = Ui.dp(8);
+        actions.addView(moreRest, first);
+        actions.addView(skip, new LinearLayout.LayoutParams(0, -2, 1));
+        restBar.addView(actions);
         restBar.setVisibility(View.GONE);
         root.addView(restBar, Ui.mlp(-1, -2, 16, 0, 16, 8));
 
@@ -97,7 +105,7 @@ public class SessionScreen extends Screen {
         long left = a.restLeft();
         if (left > 0) {
             restBar.setVisibility(View.VISIBLE);
-            restText.setText("Repos  " + Fmt.clock(left + 999));
+            restText.setText("Repos · " + Fmt.clock(left + 999));
         } else {
             restBar.setVisibility(View.GONE);
         }

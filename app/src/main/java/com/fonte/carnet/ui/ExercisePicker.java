@@ -44,7 +44,8 @@ final class ExercisePicker {
         list = Ui.vbox(a);
         list.setPadding(0, Ui.dp(4), 0, Ui.dp(8));
         sv.addView(list);
-        root.addView(sv, Ui.mlp(-1, Ui.dp(360), 0, 8, 0, 0));
+        int available = a.getResources().getDisplayMetrics().heightPixels;
+        root.addView(sv, Ui.mlp(-1, Math.min(Ui.dp(360), Math.round(available * 0.48f)), 0, 8, 0, 0));
 
         dialog = new AlertDialog.Builder(a)
                 .setTitle("Choisir un exercice")

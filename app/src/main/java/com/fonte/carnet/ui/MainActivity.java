@@ -1,6 +1,9 @@
 package com.fonte.carnet.ui;
 
 import android.app.Activity;
+import android.os.Build;
+import android.graphics.Color;
+import android.graphics.Insets;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -19,6 +22,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,6 +58,8 @@ public class MainActivity extends Activity {
     private TextView titleView;
     private ImageView backButton;
     private ImageView actionButton;
+    private LinearLayout bottomNavigation;
+    private final LinearLayout[] tabButtons = new LinearLayout[4];
     private final Icon[] tabIcons = new Icon[4];
     private final TextView[] tabLabels = new TextView[4];
     private final List<Screen> stack = new ArrayList<>();
@@ -73,6 +79,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        configureSystemBars();
         Ui.init(this);
         store = Store.get(this);
         setContentView(buildRoot());
@@ -109,10 +116,31 @@ public class MainActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // Rotation, clavier, thème système : la vue s'adapte, rien à recréer.
+        // Recalcule les tailles et les marges après rotation ou changement de densité.
+        Ui.init(this);
+        Screen current = top();
+        if (current != null) current.onHide();
+        setContentView(buildRoot());
+        render();
     }
 
     // ---------------------------------------------------------------- structure
+
+    /** Dessine sous les barres système : les zones sûres sont gérées par des insets. */
+    private void configureSystemBars() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= 30) {
+            getWindow().setDecorFitsSystemWindows(false);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        }
+        if (Build.VERSION.SDK_INT >= 29) getWindow().setNavigationBarContrastEnforced(false);
+    }
 
     private View buildRoot() {
         LinearLayout root = Ui.vbox(this);
@@ -123,8 +151,8 @@ public class MainActivity extends Activity {
         root.setDefaultFocusHighlightEnabled(false);
 
         LinearLayout header = Ui.hbox(this);
-        header.setMinimumHeight(Ui.dp(56));
-        header.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), Ui.dp(4));
+        header.setMinimumHeight(Ui.dp(60));
+        header.setPadding(Ui.dp(8), Ui.dp(6), Ui.dp(8), Ui.dp(6));
         backButton = Ui.iconButton(this, Icon.BACK, Ui.TEXT, v -> handleBack());
         titleView = Ui.text(this, "", 20, Ui.TEXT);
         titleView.setTypeface(Typeface.DEFAULT_BOLD);
@@ -149,19 +177,23 @@ public class MainActivity extends Activity {
         root.addView(border, Ui.lp(-1, 1));
 
         LinearLayout bar = Ui.hbox(this);
+        bottomNavigation = bar;
+        bar.setPadding(Ui.dp(6), Ui.dp(6), Ui.dp(6), Ui.dp(6));
         bar.setBackgroundColor(Ui.SURFACE);
         String[] labels = {"Séance", "Historique", "Programmes", "Records"};
         int[] icons = {Icon.BARBELL, Icon.HISTORY, Icon.PROGRAM, Icon.TROPHY};
         for (int i = 0; i < 4; i++) {
             LinearLayout t = Ui.vbox(this);
             t.setGravity(Gravity.CENTER);
-            t.setPadding(0, Ui.dp(8), 0, Ui.dp(8));
-            t.setBackground(Ui.pressable(Ui.rect(0x00000000, 0), 0));
+            t.setMinimumHeight(Ui.dp(62));
+            t.setPadding(Ui.dp(2), Ui.dp(7), Ui.dp(2), Ui.dp(5));
+            t.setBackground(Ui.pressable(Ui.rect(0x00000000, 12), 12));
+            tabButtons[i] = t;
             ImageView iv = new ImageView(this);
             tabIcons[i] = new Icon(icons[i], Ui.MUTED);
             iv.setImageDrawable(tabIcons[i]);
             t.addView(iv, Ui.lp(Ui.dp(24), Ui.dp(24)));
-            tabLabels[i] = Ui.medium(this, labels[i], 11, Ui.MUTED);
+            tabLabels[i] = Ui.medium(this, labels[i], 12, Ui.MUTED);
             tabLabels[i].setPadding(0, Ui.dp(3), 0, 0);
             tabLabels[i].setSingleLine(true);
             t.addView(tabLabels[i]);
@@ -171,6 +203,31 @@ public class MainActivity extends Activity {
             bar.addView(t, new LinearLayout.LayoutParams(0, -2, 1));
         }
         root.addView(bar, Ui.lp(-1, -2));
+
+        // Clavier et barre de navigation Samsung ne recouvrent plus les champs ou onglets.
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+            int left, topInset, right, bottom;
+            boolean keyboardVisible = false;
+            if (Build.VERSION.SDK_INT >= 30) {
+                Insets system = insets.getInsets(WindowInsets.Type.systemBars()
+                        | WindowInsets.Type.displayCutout());
+                Insets ime = insets.getInsets(WindowInsets.Type.ime());
+                left = system.left;
+                topInset = system.top;
+                right = system.right;
+                bottom = Math.max(system.bottom, ime.bottom);
+                keyboardVisible = insets.isVisible(WindowInsets.Type.ime());
+            } else {
+                left = insets.getSystemWindowInsetLeft();
+                topInset = insets.getSystemWindowInsetTop();
+                right = insets.getSystemWindowInsetRight();
+                bottom = insets.getSystemWindowInsetBottom();
+            }
+            root.setPadding(left, topInset, right, bottom);
+            bar.setVisibility(keyboardVisible ? View.GONE : View.VISIBLE);
+            return insets;
+        });
+        root.requestApplyInsets();
         return root;
     }
 
@@ -262,6 +319,9 @@ public class MainActivity extends Activity {
             int color = i == tab ? Ui.ACCENT : Ui.MUTED;
             tabIcons[i].setColor(color);
             tabLabels[i].setTextColor(color);
+            tabButtons[i].setSelected(i == tab);
+            tabButtons[i].setBackground(Ui.pressable(
+                    Ui.rect(i == tab ? Ui.ACCENT_SOFT : Color.TRANSPARENT, 12), 12));
         }
         if (store.current != null) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

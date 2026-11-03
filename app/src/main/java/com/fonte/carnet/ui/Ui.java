@@ -30,18 +30,19 @@ public final class Ui {
     private Ui() {
     }
 
-    public static final int BG = 0xFF0E1013;
-    public static final int SURFACE = 0xFF181B21;
-    public static final int SURFACE2 = 0xFF242831;
-    public static final int LINE = 0xFF2F343E;
-    public static final int TEXT = 0xFFF3F4F6;
-    public static final int MUTED = 0xFF9CA2AD;
-    public static final int FAINT = 0xFF646B77;
-    public static final int ACCENT = 0xFFFF5A1F;
-    public static final int ACCENT_SOFT = 0x29FF5A1F;
-    public static final int OK = 0xFF27C77A;
-    public static final int OK_SOFT = 0x2627C77A;
-    public static final int DANGER = 0xFFFF5C5C;
+    // Palette Fonte v1.1 : graphite, acier bleuté et turquoise lumineux.
+    public static final int BG = 0xFF0B111B;
+    public static final int SURFACE = 0xFF151E2B;
+    public static final int SURFACE2 = 0xFF222E3E;
+    public static final int LINE = 0xFF344253;
+    public static final int TEXT = 0xFFF3F7FA;
+    public static final int MUTED = 0xFFB6C3CF;
+    public static final int FAINT = 0xFF8798AB;
+    public static final int ACCENT = 0xFF69E6D2;
+    public static final int ACCENT_SOFT = 0x2969E6D2;
+    public static final int OK = 0xFF85DBA1;
+    public static final int OK_SOFT = 0x2685DBA1;
+    public static final int DANGER = 0xFFFF7885;
 
     public static final int PRIMARY = 0;
     public static final int SECONDARY = 1;
@@ -142,16 +143,16 @@ public final class Ui {
 
     public static LinearLayout card(Context c) {
         LinearLayout l = vbox(c);
-        l.setBackground(rect(SURFACE, 16));
-        l.setPadding(dp(16), dp(14), dp(16), dp(14));
-        l.setLayoutParams(mlp(-1, -2, 0, 0, 0, 10));
+        l.setBackground(outline(SURFACE, LINE, 16));
+        l.setPadding(dp(16), dp(16), dp(16), dp(16));
+        l.setLayoutParams(mlp(-1, -2, 0, 0, 0, 12));
         return l;
     }
 
     /** Carte cliquable. */
     public static LinearLayout clickCard(Context c, View.OnClickListener l) {
         LinearLayout card = card(c);
-        card.setBackground(pressable(rect(SURFACE, 16), 16));
+        card.setBackground(pressable(outline(SURFACE, LINE, 16), 16));
         card.setOnClickListener(l);
         return card;
     }
@@ -161,8 +162,16 @@ public final class Ui {
         ScrollView sv = new ScrollView(c);
         sv.setFillViewport(true);
         sv.setClipToPadding(false);
-        content.setPadding(dp(16), dp(8), dp(16), dp(32));
-        sv.addView(content, new ViewGroup.LayoutParams(-1, -2));
+        int screenDp = c.getResources().getConfiguration().screenWidthDp;
+        int horizontalPad = screenDp < 360 ? 12 : 18;
+        content.setPadding(dp(horizontalPad), dp(12), dp(horizontalPad), dp(28));
+        if (screenDp >= 700) {
+            android.widget.FrameLayout.LayoutParams params =
+                    new android.widget.FrameLayout.LayoutParams(dp(680), -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            sv.addView(content, params);
+        } else {
+            sv.addView(content, new ViewGroup.LayoutParams(-1, -2));
+        }
         return sv;
     }
 
@@ -214,13 +223,13 @@ public final class Ui {
     public static TextView button(Context c, String label, int kind, View.OnClickListener l) {
         TextView b = medium(c, label, 16, TEXT);
         b.setGravity(Gravity.CENTER);
-        b.setMinHeight(dp(50));
+        b.setMinHeight(dp(52));
         b.setPadding(dp(18), dp(12), dp(18), dp(12));
         int bg;
         switch (kind) {
             case PRIMARY:
                 bg = ACCENT;
-                b.setTextColor(0xFFFFFFFF);
+                b.setTextColor(BG);
                 break;
             case SECONDARY:
                 bg = SURFACE2;
@@ -255,9 +264,10 @@ public final class Ui {
         e.setHint(hint);
         e.setTextColor(TEXT);
         e.setHintTextColor(FAINT);
-        e.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
-        e.setBackground(rect(SURFACE2, 10));
-        e.setPadding(dp(12), dp(10), dp(12), dp(10));
+        e.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        e.setMinHeight(dp(48));
+        e.setBackground(outline(SURFACE2, LINE, 11));
+        e.setPadding(dp(12), dp(11), dp(12), dp(11));
         e.setSingleLine(true);
         e.setSelectAllOnFocus(true);
         if (mode == DECIMAL) {
@@ -284,9 +294,10 @@ public final class Ui {
     }
 
     public static TextView chip(Context c, String label, boolean selected, View.OnClickListener l) {
-        TextView t = medium(c, label, 14, selected ? 0xFFFFFFFF : TEXT);
+        TextView t = medium(c, label, 14, selected ? BG : TEXT);
         t.setGravity(Gravity.CENTER);
-        t.setPadding(dp(14), dp(9), dp(14), dp(9));
+        t.setMinHeight(dp(42));
+        t.setPadding(dp(14), dp(10), dp(14), dp(10));
         t.setBackground(pressable(selected ? rect(ACCENT, 20) : outline(SURFACE, LINE, 20), 20));
         t.setOnClickListener(l);
         t.setLayoutParams(mlp(-2, -2, 0, 0, 8, 0));
@@ -309,6 +320,9 @@ public final class Ui {
         LinearLayout r = hbox(c);
         r.setPadding(0, dp(4), 0, dp(4));
         TextView l = text(c, label, 15, MUTED);
+        l.setMinWidth(0);
+        l.setEllipsize(TextUtils.TruncateAt.END);
+        l.setMaxLines(2);
         r.addView(l, weight(1));
         TextView v = medium(c, value, 15, TEXT);
         tabular(v);
@@ -319,9 +333,9 @@ public final class Ui {
     /** Pavé de statistique (valeur en grand, libellé dessous). */
     public static LinearLayout stat(Context c, String value, String label) {
         LinearLayout box = vbox(c);
-        box.setBackground(rect(SURFACE, 14));
+        box.setBackground(outline(SURFACE, LINE, 14));
         box.setPadding(dp(12), dp(12), dp(12), dp(12));
-        TextView v = medium(c, value, 19, TEXT);
+        TextView v = medium(c, value, 18, TEXT);
         tabular(v);
         v.setSingleLine(true);
         v.setEllipsize(TextUtils.TruncateAt.END);
@@ -331,6 +345,19 @@ public final class Ui {
     }
 
     public static LinearLayout statRow(Context c, LinearLayout... stats) {
+        // Sur petit écran, ne pas écraser trois valeurs dans des cartes illisibles.
+        if (stats.length == 3 && c.getResources().getConfiguration().screenWidthDp < 380) {
+            LinearLayout column = vbox(c);
+            column.setLayoutParams(mlp(-1, -2, 0, 4, 0, 10));
+            LinearLayout pair = hbox(c);
+            pair.addView(stats[0], new LinearLayout.LayoutParams(0, -2, 1));
+            LinearLayout.LayoutParams second = new LinearLayout.LayoutParams(0, -2, 1);
+            second.leftMargin = dp(8);
+            pair.addView(stats[1], second);
+            column.addView(pair, lp(-1, -2));
+            column.addView(stats[2], mlp(-1, -2, 0, 8, 0, 0));
+            return column;
+        }
         LinearLayout r = hbox(c);
         r.setLayoutParams(mlp(-1, -2, 0, 4, 0, 10));
         for (int i = 0; i < stats.length; i++) {
