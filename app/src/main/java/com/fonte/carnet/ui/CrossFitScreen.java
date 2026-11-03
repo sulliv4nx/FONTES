@@ -34,20 +34,20 @@ public class CrossFitScreen extends Screen {
         if (running != null) c.addView(running);
 
         TextView s1 = Ui.section(a, "Chrono");
-        s1.setLayoutParams(Ui.mlp(-1, -2, 4, 4, 4, 8));
+        s1.setLayoutParams(Ui.mlp(-1, -2, 0, 4, 0, 8));
         c.addView(s1);
         c.addView(Ui.grid(a, 2,
-                Ui.tile(a, "AMRAP", "Max de tours", v -> a.show(new TimerSetupScreen(TimerSetupScreen.AMRAP))),
-                Ui.tile(a, "EMOM", "Chaque minute", v -> a.show(new TimerSetupScreen(TimerSetupScreen.EMOM))),
-                Ui.tile(a, "For Time", "Chrono + cap", v -> a.show(new TimerSetupScreen(TimerSetupScreen.FOR_TIME))),
-                Ui.tile(a, "Tabata", "20 s / 10 s", v -> a.show(new TimerSetupScreen(TimerSetupScreen.TABATA))),
-                Ui.tile(a, "Intervalles", "Travail / repos", v -> a.show(new TimerSetupScreen(TimerSetupScreen.INTERVALS)))));
+                Ui.tile(a, Icon.TIMER, "AMRAP", "Max de tours", v -> a.show(new TimerSetupScreen(TimerSetupScreen.AMRAP))),
+                Ui.tile(a, Icon.TIMER, "EMOM", "Chaque minute", v -> a.show(new TimerSetupScreen(TimerSetupScreen.EMOM))),
+                Ui.tile(a, Icon.TIMER, "For Time", "Chrono + cap", v -> a.show(new TimerSetupScreen(TimerSetupScreen.FOR_TIME))),
+                Ui.tile(a, Icon.TIMER, "Tabata", "20 s / 10 s", v -> a.show(new TimerSetupScreen(TimerSetupScreen.TABATA))),
+                Ui.tile(a, Icon.TIMER, "Intervalles", "Travail / repos", v -> a.show(new TimerSetupScreen(TimerSetupScreen.INTERVALS)))));
 
         c.addView(Ui.section(a, "WOD de référence"));
         c.addView(Ui.grid(a, 2,
-                Ui.tile(a, "WOD Heroes", Wods.byKind(Wod.HERO).size() + " WOD · Murph, DT…",
+                Ui.tile(a, Icon.TROPHY, "WOD Heroes", Wods.byKind(Wod.HERO).size() + " WOD · Murph, DT…",
                         v -> a.show(new WodListScreen(Wod.HERO, null))),
-                Ui.tile(a, "The Girls", Wods.byKind(Wod.GIRL).size() + " WOD · Fran, Cindy…",
+                Ui.tile(a, Icon.KETTLEBELL, "The Girls", Wods.byKind(Wod.GIRL).size() + " WOD · Fran, Cindy…",
                         v -> a.show(new WodListScreen(Wod.GIRL, null)))));
 
         c.addView(Ui.section(a, "Selon ce que tu veux travailler"));
@@ -56,14 +56,14 @@ public class CrossFitScreen extends Screen {
             String tag = Wods.TAGS[i];
             int n = Wods.byTag(tag).size();
             for (Wod w : st.customWods) if (w.tags.contains(tag)) n++;
-            tags[i] = Ui.tile(a, tag, Fmt.plural(n, "WOD"), v -> a.show(new WodListScreen(null, tag)));
+            tags[i] = Ui.tile(a, Icon.PULSE, tag, Fmt.plural(n, "WOD"), v -> a.show(new WodListScreen(null, tag)));
         }
         c.addView(Ui.grid(a, 2, tags));
 
         c.addView(Ui.section(a, "Mes WOD"));
         if (st.customWods.isEmpty()) {
             TextView t = Ui.text(a, "Crée tes WOD (ou ceux de ta box) pour les relancer avec le bon chrono et suivre tes scores.", 14, Ui.MUTED);
-            t.setPadding(Ui.dp(4), 0, Ui.dp(4), Ui.dp(4));
+            t.setPadding(0, 0, 0, Ui.dp(4));
             c.addView(t);
         } else {
             for (Wod w : st.customWods) c.addView(WodListScreen.wodCard(this, w));

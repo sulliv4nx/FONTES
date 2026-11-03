@@ -1,6 +1,10 @@
 package com.fonte.carnet.data;
 
+import com.fonte.carnet.core.BodyLog;
 import com.fonte.carnet.core.Exercise;
+import com.fonte.carnet.core.Food;
+import com.fonte.carnet.core.FoodEntry;
+import com.fonte.carnet.core.Profile;
 import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Library;
 import com.fonte.carnet.core.Program;
@@ -104,6 +108,7 @@ final class JsonCodec {
             j.put("rx", r.rx);
             if (r.capped) j.put("capped", true);
             if (r.note != null && !r.note.isEmpty()) j.put("note", r.note);
+            if (r.minutes > 0) j.put("minutes", r.minutes);
             results.put(j);
         }
         o.put("wodResults", results);
@@ -119,7 +124,228 @@ final class JsonCodec {
             renfo.put(j);
         }
         o.put("renfo", renfo);
+        writeBody(s, o);
         return o;
+    }
+
+    // ---------------------------------------------------------------- nutrition et corps
+
+    private static void writeBody(Store s, JSONObject o) throws JSONException {
+        Profile p = s.profile;
+        JSONObject pj = new JSONObject();
+        pj.put("sex", p.sex);
+        pj.put("birthYear", p.birthYear);
+        pj.put("heightCm", finite(p.heightCm));
+        pj.put("activity", finite(p.activity));
+        pj.put("goal", p.goal);
+        pj.put("kcalOverride", p.kcalOverride);
+        pj.put("proteinPerKg", finite(p.proteinPerKg));
+        pj.put("fatPerKg", finite(p.fatPerKg));
+        pj.put("waterOverride", p.waterOverride);
+        o.put("profile", pj);
+
+        JSONArray foods = new JSONArray();
+        for (Food f : s.customFoods) {
+            JSONObject j = new JSONObject();
+            j.put("id", f.id);
+            j.put("name", f.name);
+            j.put("kcal", finite(f.kcal));
+            j.put("p", finite(f.protein));
+            j.put("c", finite(f.carbs));
+            j.put("f", finite(f.fat));
+            if (f.portion > 0) j.put("portion", finite(f.portion));
+            if (f.portionLabel != null) j.put("portionLabel", f.portionLabel);
+            if (f.barcode != null) j.put("barcode", f.barcode);
+            foods.put(j);
+        }
+        o.put("foods", foods);
+
+        JSONArray entries = new JSONArray();
+        for (FoodEntry e : s.foodEntries) {
+            JSONObject j = new JSONObject();
+            j.put("id", e.id);
+            j.put("day", e.day);
+            j.put("time", e.time);
+            j.put("meal", e.meal);
+            if (e.foodId != null) j.put("foodId", e.foodId);
+            j.put("name", e.name);
+            j.put("g", finite(e.grams));
+            j.put("kcal", finite(e.kcal));
+            j.put("p", finite(e.protein));
+            j.put("c", finite(e.carbs));
+            j.put("f", finite(e.fat));
+            if (e.photo != null) j.put("photo", e.photo);
+            entries.put(j);
+        }
+        o.put("foodEntries", entries);
+
+        JSONArray water = new JSONArray();
+        for (BodyLog.Water w : s.water) {
+            JSONObject j = new JSONObject();
+            j.put("id", w.id);
+            j.put("day", w.day);
+            j.put("time", w.time);
+            j.put("ml", w.ml);
+            water.put(j);
+        }
+        o.put("water", water);
+
+        JSONArray acts = new JSONArray();
+        for (BodyLog.Activity a : s.activities) {
+            JSONObject j = new JSONObject();
+            j.put("id", a.id);
+            j.put("day", a.day);
+            j.put("time", a.time);
+            j.put("name", a.name);
+            j.put("minutes", a.minutes);
+            j.put("kcal", a.kcal);
+            acts.put(j);
+        }
+        o.put("activities", acts);
+
+        JSONArray weights = new JSONArray();
+        for (BodyLog.Weight w : s.weights) {
+            JSONObject j = new JSONObject();
+            j.put("id", w.id);
+            j.put("day", w.day);
+            j.put("time", w.time);
+            j.put("kg", finite(w.kg));
+            weights.put(j);
+        }
+        o.put("weights", weights);
+
+        JSONArray measures = new JSONArray();
+        for (BodyLog.Measures m : s.measures) {
+            JSONObject j = new JSONObject();
+            j.put("id", m.id);
+            j.put("day", m.day);
+            j.put("time", m.time);
+            JSONObject v = new JSONObject();
+            for (java.util.Map.Entry<String, Double> en : m.values.entrySet()) v.put(en.getKey(), finite(en.getValue()));
+            j.put("values", v);
+            measures.put(j);
+        }
+        o.put("measures", measures);
+    }
+
+    private static void readBody(Store s, JSONObject o) throws JSONException {
+        JSONObject pj = o.optJSONObject("profile");
+        if (pj != null) {
+            Profile p = new Profile();
+            p.sex = Profile.FEMALE.equals(pj.optString("sex", Profile.MALE)) ? Profile.FEMALE : Profile.MALE;
+            p.birthYear = pj.optInt("birthYear", 0);
+            p.heightCm = finite(pj.optDouble("heightCm", 0));
+            p.activity = finite(pj.optDouble("activity", 1.375));
+            if (p.activity < 1 || p.activity > 2.5) p.activity = 1.375;
+            p.goal = pj.optString("goal", Profile.MAINTAIN);
+            p.kcalOverride = Math.max(0, pj.optInt("kcalOverride", 0));
+            p.proteinPerKg = finite(pj.optDouble("proteinPerKg", 2.0));
+            p.fatPerKg = finite(pj.optDouble("fatPerKg", 0.9));
+            p.waterOverride = Math.max(0, pj.optInt("waterOverride", 0));
+            s.profile = p;
+        }
+        JSONArray foods = o.optJSONArray("foods");
+        if (foods != null) {
+            for (int i = 0; i < foods.length(); i++) {
+                JSONObject j = foods.getJSONObject(i);
+                Food f = new Food();
+                f.id = j.getString("id");
+                f.name = j.optString("name", "Aliment");
+                f.category = com.fonte.carnet.core.Foods.MINE;
+                f.custom = true;
+                f.kcal = finite(j.optDouble("kcal", 0));
+                f.protein = finite(j.optDouble("p", 0));
+                f.carbs = finite(j.optDouble("c", 0));
+                f.fat = finite(j.optDouble("f", 0));
+                f.portion = finite(j.optDouble("portion", 0));
+                f.portionLabel = j.has("portionLabel") ? j.getString("portionLabel") : null;
+                f.barcode = j.has("barcode") ? j.getString("barcode") : null;
+                s.customFoods.add(f);
+            }
+        }
+        JSONArray entries = o.optJSONArray("foodEntries");
+        if (entries != null) {
+            for (int i = 0; i < entries.length(); i++) {
+                JSONObject j = entries.getJSONObject(i);
+                FoodEntry e = new FoodEntry();
+                e.id = j.getLong("id");
+                e.day = j.getInt("day");
+                e.time = j.optLong("time", 0);
+                e.meal = j.optString("meal", FoodEntry.SNACK);
+                e.foodId = j.has("foodId") ? j.getString("foodId") : null;
+                e.name = j.optString("name", "Aliment");
+                e.grams = finite(j.optDouble("g", 0));
+                e.kcal = finite(j.optDouble("kcal", 0));
+                e.protein = finite(j.optDouble("p", 0));
+                e.carbs = finite(j.optDouble("c", 0));
+                e.fat = finite(j.optDouble("f", 0));
+                e.photo = j.has("photo") ? j.getString("photo") : null;
+                s.foodEntries.add(e);
+                s.nextId = Math.max(s.nextId, e.id + 1);
+            }
+        }
+        JSONArray water = o.optJSONArray("water");
+        if (water != null) {
+            for (int i = 0; i < water.length(); i++) {
+                JSONObject j = water.getJSONObject(i);
+                BodyLog.Water w = new BodyLog.Water();
+                w.id = j.getLong("id");
+                w.day = j.getInt("day");
+                w.time = j.optLong("time", 0);
+                w.ml = j.optInt("ml", 0);
+                s.water.add(w);
+                s.nextId = Math.max(s.nextId, w.id + 1);
+            }
+        }
+        JSONArray acts = o.optJSONArray("activities");
+        if (acts != null) {
+            for (int i = 0; i < acts.length(); i++) {
+                JSONObject j = acts.getJSONObject(i);
+                BodyLog.Activity a = new BodyLog.Activity();
+                a.id = j.getLong("id");
+                a.day = j.getInt("day");
+                a.time = j.optLong("time", 0);
+                a.name = j.optString("name", "Activité");
+                a.minutes = Math.max(0, j.optInt("minutes", 0));
+                a.kcal = Math.max(0, j.optInt("kcal", 0));
+                s.activities.add(a);
+                s.nextId = Math.max(s.nextId, a.id + 1);
+            }
+        }
+        JSONArray weights = o.optJSONArray("weights");
+        if (weights != null) {
+            for (int i = 0; i < weights.length(); i++) {
+                JSONObject j = weights.getJSONObject(i);
+                BodyLog.Weight w = new BodyLog.Weight();
+                w.id = j.getLong("id");
+                w.day = j.getInt("day");
+                w.time = j.optLong("time", 0);
+                w.kg = finite(j.optDouble("kg", 0));
+                if (w.kg > 0) s.weights.add(w);
+                s.nextId = Math.max(s.nextId, w.id + 1);
+            }
+        }
+        JSONArray measures = o.optJSONArray("measures");
+        if (measures != null) {
+            for (int i = 0; i < measures.length(); i++) {
+                JSONObject j = measures.getJSONObject(i);
+                BodyLog.Measures m = new BodyLog.Measures();
+                m.id = j.getLong("id");
+                m.day = j.getInt("day");
+                m.time = j.optLong("time", 0);
+                JSONObject v = j.optJSONObject("values");
+                if (v != null) {
+                    java.util.Iterator<String> it = v.keys();
+                    while (it.hasNext()) {
+                        String k = it.next();
+                        double d = finite(v.optDouble(k, 0));
+                        if (d > 0) m.values.put(k, d);
+                    }
+                }
+                s.measures.add(m);
+                s.nextId = Math.max(s.nextId, m.id + 1);
+            }
+        }
     }
 
     private static JSONObject wod(Wod w) throws JSONException {
@@ -257,10 +483,13 @@ final class JsonCodec {
                 r.rx = j.optBoolean("rx", true);
                 r.capped = j.optBoolean("capped", false);
                 r.note = j.has("note") ? j.getString("note") : null;
+                r.minutes = Math.max(0, j.optInt("minutes", 0));
                 s.wodResults.add(r);
                 s.nextId = Math.max(s.nextId, r.id + 1);
             }
         }
+
+        readBody(s, o);
 
         JSONArray renfo = o.optJSONArray("renfo");
         if (renfo != null) {

@@ -58,7 +58,7 @@ public class ExercisesScreen extends Screen {
         }
         TextView hint = Ui.text(a, "Touche + pour ajouter un exercice. Tu peux aussi le créer directement pendant une séance.",
                 13, Ui.MUTED);
-        hint.setPadding(Ui.dp(4), Ui.dp(8), Ui.dp(4), 0);
+        hint.setPadding(0, Ui.dp(8), 0, 0);
         c.addView(hint);
         return Ui.page(a, c);
     }

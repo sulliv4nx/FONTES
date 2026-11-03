@@ -61,7 +61,7 @@ public class HistoryScreen extends Screen {
 
         if (entries.isEmpty()) {
             TextView t = Ui.text(a, "Rien pour l'instant. Tes séances, WOD et circuits terminés apparaîtront ici.", 15, Ui.MUTED);
-            t.setPadding(Ui.dp(4), Ui.dp(12), Ui.dp(4), 0);
+            t.setPadding(0, Ui.dp(12), 0, 0);
             c.addView(t);
             return Ui.page(a, c);
         }

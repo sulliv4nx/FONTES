@@ -23,6 +23,8 @@ public class WodResult {
     /** Le cap de temps a été atteint (For Time non terminé). */
     public boolean capped;
     public String note;
+    /** Durée approximative de l'effort (min), pour les calories dépensées. */
+    public int minutes;
 
     /** « 12:34 », « 8 tours + 12 », « 156 reps », « Fait ». */
     public String score() {

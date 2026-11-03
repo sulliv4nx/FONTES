@@ -43,7 +43,7 @@ public class TimerSetupScreen extends Screen {
     public View build() {
         LinearLayout c = Ui.vbox(a);
         TextView s = Ui.section(a, "Type de chrono");
-        s.setLayoutParams(Ui.mlp(-1, -2, 4, 4, 4, 8));
+        s.setLayoutParams(Ui.mlp(-1, -2, 0, 4, 0, 8));
         c.addView(s);
         View[] chips = new View[MODES.length];
         for (int i = 0; i < MODES.length; i++) {
@@ -102,7 +102,7 @@ public class TimerSetupScreen extends Screen {
         c.addView(card);
         TextView prep = Ui.text(a, "Compte à rebours de " + st.settings.prepSeconds + " s avant le départ, bips sur les 3 dernières secondes "
                 + "de chaque phase (réglable dans Réglages).", 13, Ui.MUTED);
-        prep.setPadding(Ui.dp(4), 0, Ui.dp(4), Ui.dp(8));
+        prep.setPadding(0, 0, 0, Ui.dp(8));
         c.addView(prep);
         c.addView(Ui.button(a, "Démarrer", Ui.PRIMARY, v -> start()));
         return Ui.page(a, c);

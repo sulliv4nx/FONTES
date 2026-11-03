@@ -31,7 +31,7 @@ public class GeneratorScreen extends Screen {
     public View build() {
         LinearLayout c = Ui.vbox(a);
         TextView s = Ui.section(a, "Muscles à travailler");
-        s.setLayoutParams(Ui.mlp(-1, -2, 4, 4, 4, 8));
+        s.setLayoutParams(Ui.mlp(-1, -2, 0, 4, 0, 8));
         c.addView(s);
         View[] mc = new View[Library.MUSCLES.length];
         for (int i = 0; i < Library.MUSCLES.length; i++) {

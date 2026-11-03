@@ -6,7 +6,14 @@ import android.os.Looper;
 import android.util.AtomicFile;
 import android.util.Log;
 
+import com.fonte.carnet.core.BodyLog;
+import com.fonte.carnet.core.Days;
 import com.fonte.carnet.core.Exercise;
+import com.fonte.carnet.core.Food;
+import com.fonte.carnet.core.FoodEntry;
+import com.fonte.carnet.core.Foods;
+import com.fonte.carnet.core.Nutrition;
+import com.fonte.carnet.core.Profile;
 import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Fmt;
 import com.fonte.carnet.core.Library;
@@ -61,6 +68,16 @@ public final class Store {
     public final List<WodResult> wodResults = new ArrayList<>();
     /** Circuits de renfo terminés, du plus récent au plus ancien. */
     public final List<RenfoLog> renfoLogs = new ArrayList<>();
+    /** Nutrition et suivi corporel (v3). */
+    public Profile profile = new Profile();
+    public final List<Food> customFoods = new ArrayList<>();
+    public final List<FoodEntry> foodEntries = new ArrayList<>();
+    public final List<BodyLog.Water> water = new ArrayList<>();
+    public final List<BodyLog.Activity> activities = new ArrayList<>();
+    /** Pesées, de la plus récente à la plus ancienne. */
+    public final List<BodyLog.Weight> weights = new ArrayList<>();
+    /** Mensurations, de la plus récente à la plus ancienne. */
+    public final List<BodyLog.Measures> measures = new ArrayList<>();
     public Session current;
     public Program program;
     public Settings settings = new Settings();
@@ -85,6 +102,13 @@ public final class Store {
         customWods.clear();
         wodResults.clear();
         renfoLogs.clear();
+        profile = new Profile();
+        customFoods.clear();
+        foodEntries.clear();
+        water.clear();
+        activities.clear();
+        weights.clear();
+        measures.clear();
         current = null;
         program = null;
         settings = new Settings();
@@ -281,6 +305,233 @@ public final class Store {
         Collections.sort(sessions, (a, b) -> Long.compare(b.start, a.start));
         Collections.sort(wodResults, (a, b) -> Long.compare(b.date, a.date));
         Collections.sort(renfoLogs, (a, b) -> Long.compare(b.date, a.date));
+        Collections.sort(weights, (a, b) -> Long.compare(b.time, a.time));
+        Collections.sort(measures, (a, b) -> Long.compare(b.time, a.time));
+    }
+
+    // ---------------------------------------------------------------- corps
+
+    /** Dernier poids connu (kg), ou 0. */
+    public double weight() {
+        return weights.isEmpty() ? 0 : weights.get(0).kg;
+    }
+
+    /** Poids pour les calculs : dernière pesée, sinon valeur par défaut. */
+    public double weightForCalc() {
+        double w = weight();
+        return w > 0 ? w : Nutrition.DEFAULT_WEIGHT;
+    }
+
+    public BodyLog.Weight addWeight(double kg, int day) {
+        BodyLog.Weight w = new BodyLog.Weight();
+        w.id = newId();
+        w.kg = kg;
+        w.day = day;
+        w.time = day == Days.today() ? System.currentTimeMillis() : Days.start(day) + 8 * 3600_000L;
+        weights.add(w);
+        sortSessions();
+        save();
+        return w;
+    }
+
+    public void deleteWeight(BodyLog.Weight w) {
+        weights.remove(w);
+        save();
+    }
+
+    /** Poids enregistré il y a environ n jours (pesée la plus proche avant cette date), ou 0. */
+    public double weightDaysAgo(int days) {
+        long limit = System.currentTimeMillis() - days * 86_400_000L;
+        for (BodyLog.Weight w : weights) if (w.time <= limit) return w.kg;
+        return 0;
+    }
+
+    public BodyLog.Measures addMeasures(BodyLog.Measures m) {
+        m.id = newId();
+        if (m.time == 0) m.time = System.currentTimeMillis();
+        if (m.day == 0) m.day = Days.key(m.time);
+        measures.add(m);
+        sortSessions();
+        save();
+        return m;
+    }
+
+    public void deleteMeasures(BodyLog.Measures m) {
+        measures.remove(m);
+        save();
+    }
+
+    /** Dernière valeur d'une mensuration (0 si jamais mesurée). skip = nombre de valeurs récentes à ignorer. */
+    public double measure(String key, int skip) {
+        int n = 0;
+        for (BodyLog.Measures m : measures) {
+            Double v = m.values.get(key);
+            if (v == null || v <= 0) continue;
+            if (n++ == skip) return v;
+        }
+        return 0;
+    }
+
+    /** Masse grasse : mesurée si disponible, sinon estimée (US Navy), sinon 0. */
+    public double bodyFat() {
+        double measured = measure(BodyLog.BODY_FAT, 0);
+        if (measured > 0) return measured;
+        return Nutrition.navyBodyFat(profile.sex, profile.heightCm, measure(BodyLog.NECK, 0),
+                measure(BodyLog.WAIST, 0), measure(BodyLog.HIPS, 0));
+    }
+
+    // ---------------------------------------------------------------- nutrition
+
+    public Food food(String id) {
+        if (id == null) return null;
+        Food f = Foods.find(id);
+        if (f != null) return f;
+        for (Food c : customFoods) if (id.equals(c.id)) return c;
+        return null;
+    }
+
+    public Food foodByBarcode(String code) {
+        if (code == null) return null;
+        for (Food c : customFoods) if (code.equals(c.barcode)) return c;
+        return null;
+    }
+
+    public List<Food> allFoods() {
+        List<Food> l = new ArrayList<>(customFoods);
+        l.addAll(Foods.all());
+        return l;
+    }
+
+    public Food saveCustomFood(Food f) {
+        f.custom = true;
+        f.category = Foods.MINE;
+        if (f.id == null || f.id.isEmpty()) {
+            f.id = "perso_" + newId();
+            customFoods.add(0, f);
+        } else {
+            boolean replaced = false;
+            for (int i = 0; i < customFoods.size(); i++) {
+                if (customFoods.get(i).id.equals(f.id)) {
+                    customFoods.set(i, f);
+                    replaced = true;
+                }
+            }
+            if (!replaced) customFoods.add(0, f);
+        }
+        save();
+        return f;
+    }
+
+    public void deleteCustomFood(Food f) {
+        customFoods.remove(f);
+        save();
+    }
+
+    /** Aliments utilisés récemment (sans doublon, du plus récent au plus ancien). */
+    public List<Food> recentFoods(int max) {
+        List<Food> out = new ArrayList<>();
+        List<FoodEntry> sorted = new ArrayList<>(foodEntries);
+        Collections.sort(sorted, (a, b) -> Long.compare(b.time, a.time));
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (FoodEntry e : sorted) {
+            if (out.size() >= max) break;
+            if (e.foodId == null || !seen.add(e.foodId)) continue;
+            Food f = food(e.foodId);
+            if (f != null) out.add(f);
+        }
+        return out;
+    }
+
+    public FoodEntry addFood(FoodEntry e) {
+        e.id = newId();
+        if (e.time == 0) e.time = System.currentTimeMillis();
+        foodEntries.add(e);
+        save();
+        return e;
+    }
+
+    public void deleteFood(FoodEntry e) {
+        foodEntries.remove(e);
+        if (e.photo != null) {
+            boolean shared = false;
+            for (FoodEntry o : foodEntries) if (e.photo.equals(o.photo)) shared = true;
+            if (!shared) {
+                File f = new File(e.photo);
+                if (f.exists() && !f.delete()) Log.w(TAG, "photo non supprimée");
+            }
+        }
+        save();
+    }
+
+    public List<FoodEntry> foods(int day, String meal) {
+        List<FoodEntry> out = new ArrayList<>();
+        for (FoodEntry e : foodEntries) if (e.day == day && (meal == null || meal.equals(e.meal))) out.add(e);
+        Collections.sort(out, (a, b) -> Long.compare(a.time, b.time));
+        return out;
+    }
+
+    public void addWater(int ml, int day) {
+        BodyLog.Water w = new BodyLog.Water();
+        w.id = newId();
+        w.ml = ml;
+        w.day = day;
+        w.time = System.currentTimeMillis();
+        water.add(w);
+        save();
+    }
+
+    /** Retire le dernier ajout d'eau du jour. */
+    public boolean undoWater(int day) {
+        for (int i = water.size() - 1; i >= 0; i--) {
+            if (water.get(i).day == day) {
+                water.remove(i);
+                save();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public BodyLog.Activity addActivity(String name, int minutes, int kcal, int day) {
+        BodyLog.Activity a = new BodyLog.Activity();
+        a.id = newId();
+        a.name = name;
+        a.minutes = minutes;
+        a.kcal = kcal;
+        a.day = day;
+        a.time = System.currentTimeMillis();
+        activities.add(a);
+        save();
+        return a;
+    }
+
+    public void deleteActivity(BodyLog.Activity a) {
+        activities.remove(a);
+        save();
+    }
+
+    /** Séance, WOD ou renfo ce jour-là. */
+    public boolean trained(int day) {
+        for (Session s : sessions) if (Days.key(s.start) == day) return true;
+        for (WodResult r : wodResults) if (Days.key(r.date) == day) return true;
+        for (RenfoLog l : renfoLogs) if (Days.key(l.date) == day) return true;
+        return false;
+    }
+
+    public List<Nutrition.Burn> burned(int day) {
+        return Nutrition.burned(day, sessions, wodResults, renfoLogs, activities, weightForCalc());
+    }
+
+    public int targetKcal() {
+        return Nutrition.target(profile, weightForCalc(), profile.age(System.currentTimeMillis()));
+    }
+
+    public Nutrition.Macros targetMacros() {
+        return Nutrition.macros(profile, weightForCalc(), targetKcal());
+    }
+
+    public int waterTarget(int day) {
+        return Nutrition.water(profile, weightForCalc(), trained(day));
     }
 
     /**

@@ -59,7 +59,7 @@ public class RoutineScreen extends Screen {
         c.addView(card);
         if (r.rounds > 1 && r.roundRest > 0) {
             TextView t = Ui.text(a, r.roundRest + " s de récupération entre les tours.", 13, Ui.MUTED);
-            t.setPadding(Ui.dp(4), 0, 0, Ui.dp(8));
+            t.setPadding(0, 0, 0, Ui.dp(8));
             c.addView(t);
         }
         c.addView(Ui.button(a, "Commencer", Ui.PRIMARY, v -> {
@@ -68,7 +68,7 @@ public class RoutineScreen extends Screen {
             a.refreshKeepScreenOn();
         }));
         TextView safe = Ui.text(a, "Les exercices en répétitions attendent que tu touches « Fait ✓ ». Arrête-toi en cas de douleur.", 12, Ui.FAINT);
-        safe.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), 0);
+        safe.setPadding(0, Ui.dp(4), 0, 0);
         c.addView(safe);
         return Ui.page(a, c);
     }

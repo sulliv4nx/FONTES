@@ -36,7 +36,7 @@ public class RecordsScreen extends Screen {
         Map<Long, Stats.Record> recs = Stats.records(st.sessions);
         if (recs.isEmpty()) {
             TextView t = Ui.text(a, "Tes records de musculation apparaîtront ici après ta première séance.", 15, Ui.MUTED);
-            t.setPadding(Ui.dp(4), Ui.dp(16), Ui.dp(4), 0);
+            t.setPadding(0, Ui.dp(16), 0, 0);
             c.addView(t);
             return Ui.page(a, c);
         }

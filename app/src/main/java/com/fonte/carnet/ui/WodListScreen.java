@@ -50,7 +50,7 @@ public class WodListScreen extends Screen {
                     : "Les « Girls » sont les WOD de référence du CrossFit : idéaux pour mesurer tes progrès.";
         }
         TextView t = Ui.text(a, intro, 14, Ui.MUTED);
-        t.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), Ui.dp(12));
+        t.setPadding(0, Ui.dp(4), 0, Ui.dp(12));
         c.addView(t);
         for (Wod w : list) c.addView(wodCard(this, w));
         if (list.isEmpty()) c.addView(Ui.text(a, "Aucun WOD ici pour l'instant.", 15, Ui.MUTED));

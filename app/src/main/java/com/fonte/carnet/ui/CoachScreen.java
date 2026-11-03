@@ -55,7 +55,7 @@ public class CoachScreen extends Screen {
         LinearLayout c = Ui.vbox(a);
         TextView intro = Ui.text(a, "Prends en photo la programmation de ton coach (tableau blanc, feuille, capture d'écran) "
                 + "ou colle-la ici. L'appli repère les exercices, séries, répétitions et charges, ainsi que le WOD.", 14, Ui.MUTED);
-        intro.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), Ui.dp(8));
+        intro.setPadding(0, Ui.dp(4), 0, Ui.dp(8));
         c.addView(intro);
 
         TextView photo = Ui.button(a, "Prendre une photo", Ui.PRIMARY, v -> takePhoto());
@@ -112,7 +112,7 @@ public class CoachScreen extends Screen {
         c.addView(Ui.section(a, "Séance détectée"));
         if (result.items.isEmpty()) {
             TextView t = Ui.text(a, "Aucun exercice reconnu. Écris une ligne par exercice, par exemple « Squat 5x5 100kg ».", 14, Ui.MUTED);
-            t.setPadding(Ui.dp(4), 0, Ui.dp(4), Ui.dp(8));
+            t.setPadding(0, 0, 0, Ui.dp(8));
             c.addView(t);
         }
         for (int i = 0; i < result.items.size(); i++) {
@@ -144,7 +144,7 @@ public class CoachScreen extends Screen {
                 sb.append(result.ignored.get(i));
             }
             TextView ig = Ui.text(a, sb.toString(), 12, Ui.FAINT);
-            ig.setPadding(Ui.dp(4), 0, Ui.dp(4), Ui.dp(8));
+            ig.setPadding(0, 0, 0, Ui.dp(8));
             c.addView(ig);
         }
         if (!result.items.isEmpty()) {

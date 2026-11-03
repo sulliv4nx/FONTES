@@ -10,8 +10,8 @@ android {
         applicationId = "com.fonte.carnet"
         minSdk = 26          // Android 8.0 et plus
         targetSdk = 34
-        versionCode = 3
-        versionName = "2.0"
+        versionCode = 4
+        versionName = "3.0"
         // Téléphones Android (ARM) uniquement : APK plus léger avec la lecture de texte.
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
@@ -51,5 +51,7 @@ android {
 dependencies {
     // Lecture du texte des photos (programmation du coach), modèle intégré : fonctionne hors ligne.
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    // Lecture des codes-barres des produits (scan nutrition), modèle intégré.
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
     testImplementation("junit:junit:4.13.2")
 }

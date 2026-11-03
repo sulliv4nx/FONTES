@@ -120,7 +120,7 @@ public class SessionScreen extends Screen {
         if (s.exercises.isEmpty()) {
             TextView hint = Ui.text(a, "Ajoute ton premier exercice pour commencer. Coche ✓ chaque série terminée : "
                     + "seules les séries cochées sont enregistrées.", 15, Ui.MUTED);
-            hint.setPadding(Ui.dp(4), Ui.dp(8), Ui.dp(4), Ui.dp(12));
+            hint.setPadding(0, Ui.dp(8), 0, Ui.dp(12));
             list.addView(hint);
         }
         for (int i = 0; i < s.exercises.size(); i++) list.addView(exerciseCard(s, i));

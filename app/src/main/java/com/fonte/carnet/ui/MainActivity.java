@@ -48,11 +48,13 @@ public class MainActivity extends Activity {
     private static final int REQ_EXPORT = 1;
     private static final int REQ_IMPORT = 2;
 
-    public static final int TAB_SESSION = 0;
-    public static final int TAB_CROSSFIT = 1;
-    public static final int TAB_RENFO = 2;
-    public static final int TAB_HISTORY = 3;
-    public static final int TAB_RECORDS = 4;
+    public static final int TAB_HOME = 0;
+    public static final int TAB_TRAINING = 1;
+    public static final int TAB_NUTRITION = 2;
+    public static final int TAB_BODY = 3;
+    public static final int TAB_PROGRESS = 4;
+    /** Anciens noms : la musculation est dans l'onglet Sport. */
+    public static final int TAB_SESSION = TAB_TRAINING;
     /** Les programmes (Smolov Jr, 5/3/1) sont rangés dans l'onglet Muscu. */
     public static final int TAB_PROGRAMS = TAB_SESSION;
     private static final int TABS = 5;
@@ -67,7 +69,7 @@ public class MainActivity extends Activity {
     private final Icon[] tabIcons = new Icon[TABS];
     private final TextView[] tabLabels = new TextView[TABS];
     private final List<Screen> stack = new ArrayList<>();
-    private int tab = TAB_SESSION;
+    private int tab = TAB_HOME;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean resumed;
@@ -87,7 +89,7 @@ public class MainActivity extends Activity {
         Ui.init(this);
         store = Store.get(this);
         setContentView(buildRoot());
-        goTab(TAB_SESSION);
+        goTab(TAB_HOME);
         handler.post(ticker);
         if (store.loadError != null) {
             Ui.info(this, "Données illisibles",
@@ -188,8 +190,8 @@ public class MainActivity extends Activity {
         bottomNavigation = bar;
         bar.setPadding(Ui.dp(6), Ui.dp(6), Ui.dp(6), Ui.dp(6));
         bar.setBackgroundColor(Ui.SURFACE);
-        String[] labels = {"Muscu", "CrossFit", "Renfo", "Historique", "Records"};
-        int[] icons = {Icon.BARBELL, Icon.KETTLEBELL, Icon.PULSE, Icon.HISTORY, Icon.TROPHY};
+        String[] labels = {"Accueil", "Sport", "Nutrition", "Corps", "Progrès"};
+        int[] icons = {Icon.HOME, Icon.BARBELL, Icon.NUTRITION, Icon.BODY, Icon.TROPHY};
         for (int i = 0; i < TABS; i++) {
             LinearLayout t = Ui.vbox(this);
             t.setGravity(Gravity.CENTER);
@@ -204,7 +206,8 @@ public class MainActivity extends Activity {
             tabLabels[i] = Ui.medium(this, labels[i], 11, Ui.MUTED);
             tabLabels[i].setPadding(0, Ui.dp(3), 0, 0);
             tabLabels[i].setSingleLine(true);
-            t.addView(tabLabels[i]);
+            tabLabels[i].setGravity(Gravity.CENTER);
+            t.addView(tabLabels[i], Ui.lp(-1, -2));
             final int idx = i;
             t.setContentDescription(labels[i]);
             t.setOnClickListener(v -> goTab(idx));
@@ -241,16 +244,16 @@ public class MainActivity extends Activity {
 
     private Screen root(int t) {
         switch (t) {
-            case TAB_CROSSFIT:
-                return new CrossFitScreen();
-            case TAB_RENFO:
-                return new RenfoScreen();
-            case TAB_HISTORY:
-                return new HistoryScreen();
-            case TAB_RECORDS:
-                return new RecordsScreen();
+            case TAB_TRAINING:
+                return new TrainingScreen();
+            case TAB_NUTRITION:
+                return new NutritionScreen();
+            case TAB_BODY:
+                return new BodyScreen();
+            case TAB_PROGRESS:
+                return new ProgressScreen();
             default:
-                return store.current != null ? new SessionScreen() : new HomeScreen();
+                return new DashboardScreen();
         }
     }
 
@@ -300,7 +303,7 @@ public class MainActivity extends Activity {
         Screen s = top();
         if (s != null && s.onBack()) return;
         if (stack.size() > 1) back();
-        else if (tab != TAB_SESSION) goTab(TAB_SESSION);
+        else if (tab != TAB_HOME) goTab(TAB_HOME);
         else finish();
     }
 
@@ -349,7 +352,7 @@ public class MainActivity extends Activity {
         titleView.setText(s.title());
         boolean canGoBack = stack.size() > 1;
         backButton.setVisibility(canGoBack ? View.VISIBLE : View.GONE);
-        titleView.setPadding(canGoBack ? Ui.dp(4) : Ui.dp(14), 0, 0, 0);
+        titleView.setPadding(canGoBack ? Ui.dp(4) : Ui.dp(Ui.pad(this) - 8), 0, 0, 0);
         int icon = s.actionIcon();
         if (icon >= 0) {
             actionButton.setImageDrawable(new Icon(icon, Ui.TEXT));
@@ -424,7 +427,7 @@ public class MainActivity extends Activity {
         Runnable go = () -> {
             stopRest();
             store.startSession(name, plan, programKey, programDay);
-            goTab(TAB_SESSION);
+            openSession();
         };
         if (store.current == null) {
             go.run();
@@ -433,10 +436,23 @@ public class MainActivity extends Activity {
         new AlertDialog.Builder(this)
                 .setTitle("Une séance est déjà en cours")
                 .setMessage("« " + store.current.name + " » n'est pas terminée. Si tu la remplaces, elle ne sera pas enregistrée.")
-                .setPositiveButton("Voir la séance", (d, w) -> goTab(TAB_SESSION))
+                .setPositiveButton("Voir la séance", (d, w) -> openSession())
                 .setNeutralButton("Remplacer", (d, w) -> go.run())
                 .setNegativeButton("Annuler", null)
                 .show();
+    }
+
+    /** Affiche la séance en cours (onglet Sport). */
+    public void openSession() {
+        TrainingScreen.segment = TrainingScreen.MUSCU;
+        goTab(TAB_TRAINING);
+        if (store.current != null) show(new SessionScreen());
+    }
+
+    /** Ouvre l'onglet Sport sur un segment (Muscu, CrossFit, Renfo). */
+    public void openTraining(int segment) {
+        TrainingScreen.segment = segment;
+        goTab(TAB_TRAINING);
     }
 
     public void startProgramDay(int index) {
@@ -523,7 +539,7 @@ public class MainActivity extends Activity {
                         try {
                             store.importJson(json);
                             stopRest();
-                            goTab(TAB_SESSION);
+                            goTab(TAB_HOME);
                             Ui.toast(this, "Données importées.");
                         } catch (Exception e) {
                             Ui.info(this, "Import impossible",

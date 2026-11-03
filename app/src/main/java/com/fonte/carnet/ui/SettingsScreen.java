@@ -22,7 +22,7 @@ public class SettingsScreen extends Screen {
         LinearLayout c = Ui.vbox(a);
 
         TextView s1 = Ui.section(a, "Minuteur de repos");
-        s1.setLayoutParams(Ui.mlp(-1, -2, 4, 8, 4, 8));
+        s1.setLayoutParams(Ui.mlp(-1, -2, 0, 8, 0, 8));
         c.addView(s1);
         View[] restChips = new View[REST.length];
         for (int i = 0; i < REST.length; i++) {
@@ -36,11 +36,11 @@ public class SettingsScreen extends Screen {
         }
         c.addView(Ui.chipRow(a, restChips));
         TextView restNote = Ui.text(a, "Il démarre tout seul quand tu coches une série.", 13, Ui.MUTED);
-        restNote.setPadding(Ui.dp(4), 0, 0, Ui.dp(4));
+        restNote.setPadding(0, 0, 0, Ui.dp(4));
         c.addView(restNote);
 
         LinearLayout vib = Ui.hbox(a);
-        vib.setPadding(Ui.dp(4), Ui.dp(8), 0, Ui.dp(8));
+        vib.setPadding(0, Ui.dp(8), 0, Ui.dp(8));
         vib.addView(Ui.text(a, "Vibrer à la fin du repos", 16, Ui.TEXT), Ui.weight(1));
         Switch sw = new Switch(a);
         sw.setChecked(st.settings.vibrate);
@@ -53,7 +53,7 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "Chrono CrossFit et renfo"));
         LinearLayout snd = Ui.hbox(a);
-        snd.setPadding(Ui.dp(4), Ui.dp(4), 0, Ui.dp(8));
+        snd.setPadding(0, Ui.dp(4), 0, Ui.dp(8));
         snd.addView(Ui.text(a, "Bips (3-2-1 et changements de phase)", 16, Ui.TEXT), Ui.weight(1));
         Switch sw2 = new Switch(a);
         sw2.setChecked(st.settings.sounds);
@@ -76,7 +76,7 @@ public class SettingsScreen extends Screen {
         }
         c.addView(Ui.chipRow(a, prepChips));
         TextView volNote = Ui.text(a, "Le volume des bips suit le volume multimédia du téléphone.", 13, Ui.MUTED);
-        volNote.setPadding(Ui.dp(4), 0, 0, 0);
+        volNote.setPadding(0, 0, 0, 0);
         c.addView(volNote);
 
         c.addView(Ui.section(a, "Arrondi des charges calculées"));
@@ -92,12 +92,13 @@ public class SettingsScreen extends Screen {
         c.addView(Ui.chipRow(a, roundChips));
         TextView roundNote = Ui.text(a, "Utilisé par les programmes et le calculateur. 2,5 kg = la plus petite paire "
                 + "de disques courante (2 × 1,25 kg). Ne modifie pas un programme déjà créé.", 13, Ui.MUTED);
-        roundNote.setPadding(Ui.dp(4), 0, 0, 0);
+        roundNote.setPadding(0, 0, 0, 0);
         c.addView(roundNote);
 
         c.addView(Ui.section(a, "Sauvegarde"));
         LinearLayout card = Ui.card(a);
-        card.addView(Ui.text(a, "Tes données restent uniquement sur ce téléphone. Exporte-les de temps en temps "
+        card.addView(Ui.text(a, "Tes données restent sur ce téléphone (seul le code-barres d'un produit scanné est envoyé à "
+                + "Open Food Facts pour trouver sa fiche). Exporte-les de temps en temps "
                 + "(Drive, mail…) pour ne rien perdre si tu changes d'appareil.", 14, Ui.MUTED));
         card.addView(Ui.button(a, "Exporter mes données", Ui.SECONDARY, v -> a.exportData()));
         card.addView(Ui.button(a, "Importer une sauvegarde", Ui.GHOST, v -> a.importData()));
@@ -105,7 +106,7 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "À propos"));
         LinearLayout about = Ui.card(a);
-        about.addView(Ui.medium(a, "Fonte 2.0", 16, Ui.TEXT));
+        about.addView(Ui.medium(a, "Fonte 3.0", 16, Ui.TEXT));
         about.addView(Ui.text(a, st.sessions.size() + " séances de muscu · "
                 + Fmt.plural(st.wodResults.size(), "score") + " de WOD · "
                 + st.renfoLogs.size() + " circuits de renfo · "

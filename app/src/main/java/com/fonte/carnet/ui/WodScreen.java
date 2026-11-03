@@ -80,7 +80,7 @@ public class WodScreen extends Screen {
         c.addView(card);
         if (w.note != null && !w.note.isEmpty()) {
             TextView n = Ui.text(a, w.note, 13, Ui.MUTED);
-            n.setPadding(Ui.dp(4), 0, Ui.dp(4), Ui.dp(8));
+            n.setPadding(0, 0, 0, Ui.dp(8));
             c.addView(n);
         }
         if (!w.tags.isEmpty()) {
@@ -103,7 +103,7 @@ public class WodScreen extends Screen {
         c.addView(Ui.section(a, "Mes scores"));
         if (results.isEmpty()) {
             TextView t = Ui.text(a, "Pas encore de score. Lance le chrono, ton résultat te sera proposé à la fin.", 14, Ui.MUTED);
-            t.setPadding(Ui.dp(4), 0, Ui.dp(4), 0);
+            t.setPadding(0, 0, 0, 0);
             c.addView(t);
         } else {
             WodResult best = WodResult.best(st.wodResults, w.id, w.scoreType());
@@ -129,7 +129,7 @@ public class WodScreen extends Screen {
                 c.addView(row);
             }
             TextView hint = Ui.text(a, "Appui long sur un score pour le supprimer.", 12, Ui.FAINT);
-            hint.setPadding(Ui.dp(4), 0, 0, 0);
+            hint.setPadding(0, 0, 0, 0);
             c.addView(hint);
         }
         return Ui.page(a, c);

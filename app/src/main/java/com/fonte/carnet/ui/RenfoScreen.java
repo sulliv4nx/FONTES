@@ -24,7 +24,7 @@ public class RenfoScreen extends Screen {
         if (running != null) c.addView(running);
         TextView intro = Ui.text(a, "Circuits guidés au poids du corps (élastique léger pour les épaules) : "
                 + "l'appli enchaîne les exercices, les temps et les pauses pour toi.", 14, Ui.MUTED);
-        intro.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), Ui.dp(4));
+        intro.setPadding(0, Ui.dp(4), 0, Ui.dp(4));
         c.addView(intro);
 
         for (String focus : Routines.FOCUS) {

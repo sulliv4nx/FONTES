@@ -23,13 +23,13 @@ public class TemplatesScreen extends Screen {
         LinearLayout c = Ui.vbox(a);
         TextView intro = Ui.text(a, "Touche une séance pour la voir, puis lance-la. Les charges de ta dernière fois sont reprises "
                 + "automatiquement : il ne reste qu'à ajuster.", 14, Ui.MUTED);
-        intro.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), 0);
+        intro.setPadding(0, Ui.dp(4), 0, 0);
         c.addView(intro);
 
         c.addView(Ui.section(a, "Mes modèles"));
         if (st.templates.isEmpty()) {
             TextView t = Ui.text(a, "Enregistre une séance comme modèle depuis le menu ⋯ d'une séance ou de l'historique.", 14, Ui.MUTED);
-            t.setPadding(Ui.dp(4), 0, Ui.dp(4), 0);
+            t.setPadding(0, 0, 0, 0);
             c.addView(t);
         }
         for (Template t : st.templates) c.addView(card(t));

@@ -52,7 +52,7 @@ public class CalculatorScreen extends Screen {
         c.addView(table);
         TextView note = Ui.text(a, "Formule d'Epley, fiable jusqu'à une dizaine de répétitions. Charges arrondies à "
                 + Fmt.kg(st.settings.rounding) + " kg (modifiable dans Réglages). Les reps sont indicatives.", 12, Ui.MUTED);
-        note.setPadding(Ui.dp(4), Ui.dp(4), Ui.dp(4), 0);
+        note.setPadding(0, Ui.dp(4), 0, 0);
         c.addView(note);
 
         Ui.onText(w, t -> {

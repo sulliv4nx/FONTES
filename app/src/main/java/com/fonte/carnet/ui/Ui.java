@@ -43,6 +43,13 @@ public final class Ui {
     public static final int OK = 0xFF85DBA1;
     public static final int OK_SOFT = 0x2685DBA1;
     public static final int DANGER = 0xFFFF7885;
+    /** Couleurs de données (macros, eau, dépense). */
+    public static final int PROTEIN = 0xFF7AA2FF;
+    public static final int CARBS = 0xFFFFC66B;
+    public static final int FAT = 0xFFFF8FAB;
+    public static final int WATER = 0xFF5BC0FF;
+    public static final int BURN = 0xFFFF9F5A;
+    public static final int WARN = 0xFFFFB347;
 
     public static final int PRIMARY = 0;
     public static final int SECONDARY = 1;
@@ -109,9 +116,105 @@ public final class Ui {
     /** Petit intitulé de section en capitales. */
     public static TextView section(Context c, String s) {
         TextView t = medium(c, s.toUpperCase(java.util.Locale.FRENCH), 12, MUTED);
-        t.setLetterSpacing(0.08f);
-        t.setLayoutParams(mlp(-1, -2, 4, 24, 4, 8));
+        t.setLetterSpacing(0.06f);
+        t.setLayoutParams(mlp(-1, -2, 0, 22, 0, 10));
         return t;
+    }
+
+    /** Marge latérale des pages (dp) : la même partout, en-tête compris. */
+    public static int pad(Context c) {
+        return c.getResources().getConfiguration().screenWidthDp < 360 ? 16 : 20;
+    }
+
+    /** Texte d'aide aligné sur les cartes. */
+    public static TextView hint(Context c, String s) {
+        TextView t = text(c, s, 14, MUTED);
+        t.setLayoutParams(mlp(-1, -2, 0, 0, 0, 10));
+        return t;
+    }
+
+    /** Petite pastille d'icône (carré arrondi teinté). */
+    public static View iconBadge(Context c, int icon, int color) {
+        android.widget.FrameLayout f = new android.widget.FrameLayout(c);
+        f.setBackground(rect((color & 0x00FFFFFF) | 0x26000000, 12));
+        ImageView iv = new ImageView(c);
+        iv.setImageDrawable(new Icon(icon, color));
+        f.addView(iv, new android.widget.FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER));
+        f.setLayoutParams(lp(dp(40), dp(40)));
+        return f;
+    }
+
+    /** Titre de carte avec icône à gauche et texte d'action facultatif à droite. */
+    public static LinearLayout cardHeader(Context c, int icon, int color, String title, String action, View.OnClickListener l) {
+        LinearLayout h = hbox(c);
+        h.setLayoutParams(mlp(-1, -2, 0, 0, 0, 12));
+        View b = iconBadge(c, icon, color);
+        h.addView(b);
+        TextView t = medium(c, title, 17, TEXT);
+        t.setPadding(dp(12), 0, dp(8), 0);
+        h.addView(t, weight(1));
+        if (action != null) {
+            TextView a = medium(c, action, 14, ACCENT);
+            a.setPadding(dp(10), dp(8), 0, dp(8));
+            a.setOnClickListener(l);
+            h.addView(a);
+        }
+        return h;
+    }
+
+    /** Jauge « libellé · valeur / objectif » avec barre colorée. */
+    public static LinearLayout meter(Context c, String label, double value, double target, String unit, int color) {
+        LinearLayout box = vbox(c);
+        box.setLayoutParams(mlp(-1, -2, 0, 0, 0, 10));
+        LinearLayout row = hbox(c);
+        row.addView(text(c, label, 13, MUTED), weight(1));
+        String v = com.fonte.carnet.core.Fmt.kg(Math.round(value)) + (target > 0 ? " / " + com.fonte.carnet.core.Fmt.kg(Math.round(target)) : "") + " " + unit;
+        TextView tv = medium(c, v, 13, TEXT);
+        tabular(tv);
+        row.addView(tv);
+        box.addView(row);
+        LinearLayout bar = hbox(c);
+        bar.setBackground(rect(SURFACE2, 3));
+        bar.setWeightSum(1f);
+        View fill = new View(c);
+        fill.setBackground(rect(value > target && target > 0 ? WARN : color, 3));
+        float ratio = target <= 0 ? 0 : (float) Math.min(1.0, value / target);
+        bar.addView(fill, new LinearLayout.LayoutParams(0, -1, ratio));
+        box.addView(bar, mlp(-1, dp(6), 0, 6, 0, 0));
+        return box;
+    }
+
+    public interface IntCallback {
+        void on(int index);
+    }
+
+    /** Sélecteur à segments (onglets internes). */
+    public static LinearLayout segmented(Context c, String[] labels, int selected, IntCallback cb) {
+        LinearLayout s = hbox(c);
+        s.setBackground(rect(SURFACE, 14));
+        s.setPadding(dp(4), dp(4), dp(4), dp(4));
+        for (int i = 0; i < labels.length; i++) {
+            final int idx = i;
+            TextView t = medium(c, labels[i], 14, i == selected ? TEXT : MUTED);
+            t.setGravity(Gravity.CENTER);
+            t.setMinHeight(dp(40));
+            t.setSingleLine(true);
+            t.setBackground(pressable(rect(i == selected ? SURFACE2 : 0x00000000, 11), 11));
+            t.setOnClickListener(v -> cb.on(idx));
+            s.addView(t, new LinearLayout.LayoutParams(0, -2, 1));
+        }
+        return s;
+    }
+
+    /** Grand chiffre + libellé (valeur clé d'une carte). */
+    public static LinearLayout bigValue(Context c, String value, String label) {
+        LinearLayout box = vbox(c);
+        TextView v = text(c, value, 30, TEXT);
+        v.setTypeface(Typeface.DEFAULT_BOLD);
+        tabular(v);
+        box.addView(v);
+        if (label != null) box.addView(text(c, label, 13, MUTED));
+        return box;
     }
 
     public static TextView badge(Context c, String s, int color, int bg) {
@@ -143,7 +246,7 @@ public final class Ui {
 
     public static LinearLayout card(Context c) {
         LinearLayout l = vbox(c);
-        l.setBackground(outline(SURFACE, LINE, 16));
+        l.setBackground(outline(SURFACE, LINE, 18));
         l.setPadding(dp(16), dp(16), dp(16), dp(16));
         l.setLayoutParams(mlp(-1, -2, 0, 0, 0, 12));
         return l;
@@ -152,7 +255,7 @@ public final class Ui {
     /** Carte cliquable. */
     public static LinearLayout clickCard(Context c, View.OnClickListener l) {
         LinearLayout card = card(c);
-        card.setBackground(pressable(outline(SURFACE, LINE, 16), 16));
+        card.setBackground(pressable(outline(SURFACE, LINE, 18), 18));
         card.setOnClickListener(l);
         return card;
     }
@@ -163,8 +266,7 @@ public final class Ui {
         sv.setFillViewport(true);
         sv.setClipToPadding(false);
         int screenDp = c.getResources().getConfiguration().screenWidthDp;
-        int horizontalPad = screenDp < 360 ? 12 : 18;
-        content.setPadding(dp(horizontalPad), dp(12), dp(horizontalPad), dp(28));
+        content.setPadding(dp(pad(c)), dp(8), dp(pad(c)), dp(32));
         if (screenDp >= 700) {
             android.widget.FrameLayout.LayoutParams params =
                     new android.widget.FrameLayout.LayoutParams(dp(680), -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
@@ -425,20 +527,43 @@ public final class Ui {
             if (i % columns == 0) {
                 row = hbox(c);
                 row.setGravity(android.view.Gravity.TOP);
-                g.addView(row, mlp(-1, -2, 0, 0, 0, 8));
+                g.addView(row, mlp(-1, -2, 0, 0, 0, 10));
             }
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -1, 1);
-            if (i % columns != columns - 1) p.rightMargin = dp(8);
+            if (i % columns != columns - 1) p.rightMargin = dp(10);
             row.addView(cells[i], p);
         }
         if (row != null) {
             for (int i = cells.length % columns; i > 0 && i < columns; i++) {
-                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, 1, 1);
-                if (i != columns - 1) p.rightMargin = dp(8);
-                row.addView(new View(c), p);
+                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -1, 1);
+                if (i != columns - 1) p.rightMargin = dp(10);
+                View filler = new View(c);
+                filler.setVisibility(View.INVISIBLE);
+                row.addView(filler, p);
             }
         }
         return g;
+    }
+
+    /** Tuile cliquable avec icône : pastille, titre, sous-titre. */
+    public static LinearLayout tile(Context c, int icon, String title, String sub, View.OnClickListener l) {
+        LinearLayout t = vbox(c);
+        t.setBackground(pressable(outline(SURFACE, LINE, 18), 18));
+        t.setPadding(dp(14), dp(14), dp(14), dp(14));
+        t.setOnClickListener(l);
+        t.addView(iconBadge(c, icon, ACCENT));
+        TextView h = medium(c, title, 15, TEXT);
+        h.setPadding(0, dp(10), 0, 0);
+        h.setMaxLines(2);
+        t.addView(h);
+        if (sub != null && !sub.isEmpty()) {
+            TextView s = text(c, sub, 12, MUTED);
+            s.setPadding(0, dp(2), 0, 0);
+            s.setMaxLines(2);
+            s.setEllipsize(TextUtils.TruncateAt.END);
+            t.addView(s);
+        }
+        return t;
     }
 
     /** Tuile cliquable : titre + sous-titre. */

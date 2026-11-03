@@ -1,8 +1,25 @@
-# Fonte 2.0 — muscu, CrossFit et renfo pour Android
+# Fonte 3.0 — sport, nutrition et suivi corporel pour Android
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
 ## Onglets
+
+**Accueil · Sport (Muscu, CrossFit, Renfo) · Nutrition · Corps · Progrès (historique et records)**
+
+### Accueil
+Le récapitulatif du jour : calories restantes et macros, hydratation, calories dépensées, séance du jour ou programme, poids et sa courbe, semaine d'activité et derniers records.
+
+### Nutrition
+- **Besoins calculés** selon le profil (Mifflin-St Jeor) : objectif calorique (perte, maintien ou prise de masse), protéines et lipides en g/kg, glucides pour le reste, eau (35 ml/kg, plus 500 ml les jours d'entraînement).
+- **Journal par repas** (petit-déjeuner, déjeuner, dîner, collations) : base d'environ 95 aliments courants, aliments récents, aliments perso.
+- **Code-barres** : la photo du code est lue sur le téléphone, puis la fiche produit vient d'Open Food Facts (connexion nécessaire).
+- **Étiquette** : la photo du tableau nutritionnel est lue sur le téléphone, et les valeurs sont pré-remplies.
+- **Photo du repas** : jointe au journal. Elle ne calcule pas les calories : il faudrait un service d'IA en ligne.
+- **Calories dépensées** : estimées (MET) à partir des séances, WOD et circuits, plus les activités ajoutées (course, vélo…) ou les calories de ta montre.
+
+### Corps
+Poids (courbe, variations sur 7 et 30 jours, IMC), mensurations (taille, hanches, poitrine, épaules, bras, cuisse, mollet, cou, masse grasse) avec historique, composition corporelle (masse grasse mesurée ou estimée par la méthode de l'US Navy).
+
 
 ### Muscu
 - **Séance libre** ou lancée depuis une séance type, un modèle, une proposition ou la programmation du coach. Tu notes kg × répétitions et tu coches ✓ chaque série terminée. Les charges de la dernière fois sont reprises automatiquement.
@@ -42,7 +59,8 @@ app/src/main/java/com/fonte/carnet/
 app/src/test/   tests unitaires (./gradlew test)
 ```
 
-- Java, SDK Android et ML Kit (lecture de texte sur le téléphone, sans connexion). Android 8.0 minimum (API 26), cible API 34.
+- Java, SDK Android et ML Kit (lecture de texte et de codes-barres sur le téléphone, sans connexion). Android 8.0 minimum (API 26), cible API 34.
+- Seule connexion : la recherche d'un code-barres sur Open Food Facts (aucun compte, aucune autre donnée envoyée).
 - Données : `fonte.json` dans le stockage privé de l'appli. Il est inclus dans la sauvegarde Android automatique et peut être exporté depuis Réglages.
 
 ## Sécurité

@@ -124,6 +124,13 @@ final class ScoreDialog {
                     return;
                 }
             }
+            if (WodResult.TIME.equals(type)) {
+                r.minutes = r.capped ? Math.max(1, w.minutes) : Math.max(1, Math.round(r.seconds / 60f));
+            } else if (WodResult.REPS.equals(type)) {
+                r.minutes = Math.max(1, (w.rounds > 0 ? w.rounds : 8) / 2);
+            } else {
+                r.minutes = w.minutes > 0 ? w.minutes : 20;
+            }
             Ui.hideKeyboard(note);
             d.dismiss();
             boolean record = st.addWodResult(r);

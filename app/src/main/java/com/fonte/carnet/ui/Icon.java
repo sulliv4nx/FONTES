@@ -23,6 +23,16 @@ public class Icon extends Drawable {
     public static final int TIMER = 10;
     public static final int KETTLEBELL = 11;
     public static final int PULSE = 12;
+    public static final int HOME = 13;
+    public static final int NUTRITION = 14;
+    public static final int BODY = 15;
+    public static final int DROP = 16;
+    public static final int FLAME = 17;
+    public static final int CAMERA = 18;
+    public static final int BARCODE = 19;
+    public static final int RULER = 20;
+    public static final int SPARK = 21;
+    public static final int EDIT = 22;
 
     private final int type;
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -186,6 +196,130 @@ public class Icon extends Drawable {
                 path.lineTo(x(16), y(11));
                 path.lineTo(x(17.5f), y(12.5f));
                 path.lineTo(x(22), y(12.5f));
+                c.drawPath(path, stroke);
+                break;
+            case HOME:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(3.5f), y(11));
+                path.lineTo(x(12), y(4));
+                path.lineTo(x(20.5f), y(11));
+                c.drawPath(path, stroke);
+                path.reset();
+                path.moveTo(x(6), y(9.5f));
+                path.lineTo(x(6), y(20));
+                path.lineTo(x(18), y(20));
+                path.lineTo(x(18), y(9.5f));
+                c.drawPath(path, stroke);
+                box(10, 14, 14, 20, 0.8f, false);
+                break;
+            case NUTRITION:
+                // Fourchette et couteau.
+                line(7, 3, 7, 21);
+                line(4.5f, 3, 4.5f, 8);
+                line(9.5f, 3, 9.5f, 8);
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(4.5f), y(8));
+                path.quadTo(x(4.5f), y(10.5f), x(7), y(10.5f));
+                path.quadTo(x(9.5f), y(10.5f), x(9.5f), y(8));
+                c.drawPath(path, stroke);
+                path.reset();
+                path.moveTo(x(17), y(21));
+                path.lineTo(x(17), y(3));
+                path.quadTo(x(20), y(5), x(20), y(11));
+                path.lineTo(x(17), y(13));
+                c.drawPath(path, stroke);
+                break;
+            case BODY:
+                // Pèse-personne.
+                box(3.5f, 3.5f, 20.5f, 20.5f, 4, false);
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(7.5f), y(10));
+                path.quadTo(x(12), y(5.5f), x(16.5f), y(10));
+                c.drawPath(path, stroke);
+                line(12, 10.5f, 13.6f, 7.8f);
+                break;
+            case DROP:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(12), y(3));
+                path.cubicTo(x(9.5f), y(7), x(5.5f), y(11), x(5.5f), y(14.5f));
+                path.cubicTo(x(5.5f), y(18.5f), x(8.5f), y(21), x(12), y(21));
+                path.cubicTo(x(15.5f), y(21), x(18.5f), y(18.5f), x(18.5f), y(14.5f));
+                path.cubicTo(x(18.5f), y(11), x(14.5f), y(7), x(12), y(3));
+                path.close();
+                c.drawPath(path, stroke);
+                break;
+            case FLAME:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(12), y(2.5f));
+                path.cubicTo(x(13), y(7), x(18.5f), y(9), x(18.5f), y(14.5f));
+                path.cubicTo(x(18.5f), y(18.5f), x(15.5f), y(21.5f), x(12), y(21.5f));
+                path.cubicTo(x(8.5f), y(21.5f), x(5.5f), y(18.5f), x(5.5f), y(15));
+                path.cubicTo(x(5.5f), y(12), x(7.5f), y(10.5f), x(8.7f), y(8.5f));
+                path.cubicTo(x(9.3f), y(10.5f), x(10.3f), y(11.5f), x(11.3f), y(12));
+                path.cubicTo(x(12.3f), y(9), x(12.5f), y(6), x(12), y(2.5f));
+                path.close();
+                c.drawPath(path, stroke);
+                break;
+            case CAMERA:
+                box(3, 7, 21, 19.5f, 3, false);
+                circle(12, 13.2f, 3.6f, false);
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(8.5f), y(7));
+                path.lineTo(x(10), y(4.5f));
+                path.lineTo(x(14), y(4.5f));
+                path.lineTo(x(15.5f), y(7));
+                c.drawPath(path, stroke);
+                break;
+            case BARCODE:
+                line(4, 5, 4, 19);
+                line(7.5f, 5, 7.5f, 19);
+                line(10, 5, 10, 19);
+                line(14, 5, 14, 19);
+                line(16.5f, 5, 16.5f, 19);
+                line(20, 5, 20, 19);
+                break;
+            case RULER:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(3), y(16));
+                path.lineTo(x(16), y(3));
+                path.lineTo(x(21), y(8));
+                path.lineTo(x(8), y(21));
+                path.close();
+                c.drawPath(path, stroke);
+                line(7, 12, 9, 14);
+                line(10, 9, 12, 11);
+                line(13, 6, 15, 8);
+                break;
+            case SPARK:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(12), y(3));
+                path.lineTo(x(14), y(10));
+                path.lineTo(x(21), y(12));
+                path.lineTo(x(14), y(14));
+                path.lineTo(x(12), y(21));
+                path.lineTo(x(10), y(14));
+                path.lineTo(x(3), y(12));
+                path.lineTo(x(10), y(10));
+                path.close();
+                c.drawPath(path, stroke);
+                break;
+            case EDIT:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(4), y(20));
+                path.lineTo(x(5), y(15.5f));
+                path.lineTo(x(15.5f), y(5));
+                path.lineTo(x(19), y(8.5f));
+                path.lineTo(x(8.5f), y(19));
+                path.close();
                 c.drawPath(path, stroke);
                 break;
             default:

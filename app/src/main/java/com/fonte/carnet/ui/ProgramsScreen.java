@@ -24,7 +24,7 @@ public class ProgramsScreen extends Screen {
         Program p = st.program;
         if (p != null) {
             TextView sec = Ui.section(a, "En cours");
-            sec.setLayoutParams(Ui.mlp(-1, -2, 4, 8, 4, 8));
+            sec.setLayoutParams(Ui.mlp(-1, -2, 0, 8, 0, 8));
             c.addView(sec);
             LinearLayout card = Ui.clickCard(a, v -> a.show(new ProgramScreen()));
             card.addView(Ui.medium(a, p.title, 18, Ui.TEXT));
@@ -52,7 +52,7 @@ public class ProgramsScreen extends Screen {
         if (st.templates.isEmpty()) {
             TextView t = Ui.text(a, "Un modèle, c'est une séance type à relancer en un geste. Crée-en un depuis "
                     + "une séance (menu ⋯ › Enregistrer comme modèle).", 14, Ui.MUTED);
-            t.setPadding(Ui.dp(4), 0, Ui.dp(4), 0);
+            t.setPadding(0, 0, 0, 0);
             c.addView(t);
         }
         for (Template t : st.templates) c.addView(templateCard(t));
