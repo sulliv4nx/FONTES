@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Barre de musculation, centrée dans la zone sûre des icônes adaptatives (cercle de 66 dp). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFF5A1F"
+        android:pathData="M26,52H82V56H26Z M36,36H44V72H36Z M64,36H72V72H64Z M31,42H36V66H31Z M72,42H77V66H72Z" />
+</vector>
