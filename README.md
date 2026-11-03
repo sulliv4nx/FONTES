@@ -1,4 +1,4 @@
-# Fonte 4.0 — sport, nutrition et suivi corporel pour Android
+# Fonte 4.1 — sport, nutrition et suivi corporel pour Android
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
@@ -23,6 +23,8 @@ Le récapitulatif du jour : calories restantes et macros, hydratation, calories 
 - **Chaque plat** : quantités en grammes (poids cuit et équivalent cru ou sec), macros, étapes de préparation. « Mangé » l'ajoute au journal du jour.
 - **Remplacer un plat** : 3 propositions aux mêmes calories et protéines (±10 %), ou toutes les recettes au choix.
 - **Liste de courses** : calculée sur la semaine, rangée par rayon, en poids cru ou sec, à cocher, à compléter, à partager ou copier.
+- **Composer avec mes ingrédients** : tu choisis ce que tu as (poulet, pâtes, œufs, épinards, morue, brèdes…) et Fonte propose des repas : recettes qui les utilisent (avec équivalences, par exemple brèdes ou épinards) et assiettes composées, ajustées à ton objectif. Tu valides ceux qui te tentent, puis tu remplis ta semaine ou tu places un repas précis. Ce qui manque s'ajoute à la liste de courses.
+- **Cuisine réunionnaise** : cari poulet, rougail saucisse, rougail morue, rougail z'œufs, rougail thon, rougail poulet, massalé poulet et cabri, cari camarons, civet zourite, cari ti jacques, zembrocal, gratin chouchou, lentilles de Cilaos, poisson aux brèdes…
 
 ### Corps
 Poids (courbe, variations sur 7 et 30 jours, IMC), mensurations (taille, hanches, poitrine, épaules, bras, cuisse, mollet, cou, masse grasse) avec historique, composition corporelle (masse grasse mesurée ou estimée par la méthode de l'US Navy).

@@ -21,6 +21,10 @@ public class MealPrefs {
     public boolean batch = true;
     /** 0 simple, 1 équilibré, 2 varié. */
     public int variety = 1;
+    /** « Composer mes repas » : ingrédients choisis (identifiants d'aliments). */
+    public final java.util.List<String> pantry = new java.util.ArrayList<>();
+    /** Autoriser les plats qui demandent d'autres ingrédients. */
+    public boolean complete = true;
 
     public MealPrefs copy() {
         MealPrefs p = new MealPrefs();
@@ -37,6 +41,8 @@ public class MealPrefs {
         p.avoid = avoid;
         p.batch = batch;
         p.variety = variety;
+        p.pantry.addAll(pantry);
+        p.complete = complete;
         return p;
     }
 

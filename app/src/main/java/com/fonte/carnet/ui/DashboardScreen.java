@@ -96,7 +96,7 @@ public class DashboardScreen extends Screen {
         int burned = Nutrition.total(st.burned(day));
         int target = st.targetKcal();
         int goal = target + burned;
-        Nutrition.Macros m = st.targetMacros();
+        Nutrition.Macros m = st.targetMacros(day);
         LinearLayout card = Ui.clickCard(a, v -> a.goTab(MainActivity.TAB_NUTRITION));
         card.addView(Ui.cardHeader(a, Icon.NUTRITION, Ui.ACCENT, "Nutrition du jour", "Journal",
                 v -> a.goTab(MainActivity.TAB_NUTRITION)));

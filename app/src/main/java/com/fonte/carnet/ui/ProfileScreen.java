@@ -94,6 +94,10 @@ public class ProfileScreen extends Screen {
         res.addView(Ui.row(a, "Protéines", m.protein + " g · " + Fmt.kg(p.proteinPerKg) + " g/kg"));
         res.addView(Ui.row(a, "Lipides", m.fat + " g · " + Fmt.kg(p.fatPerKg) + " g/kg"));
         res.addView(Ui.row(a, "Glucides", m.carbs + " g (le reste)"));
+        TextView carbsHow = Ui.text(a, "Glucides = (calories − protéines × 4 − lipides × 9) ÷ 4, hors fibres comme sur les étiquettes. "
+                + "Les jours d'entraînement, les calories de la séance s'ajoutent en glucides.", 12, Ui.MUTED);
+        carbsHow.setPadding(0, 0, 0, Ui.dp(4));
+        res.addView(carbsHow);
         res.addView(Ui.row(a, "Eau", Fmt.kg(st.waterTarget(com.fonte.carnet.core.Days.today()) / 1000.0) + " L par jour"));
         TextView how = Ui.text(a, "Formule de Mifflin-St Jeor. Perte : −20 %, prise de masse : +10 %. "
                 + "Ce sont des estimations : ajuste selon l'évolution de ton poids sur 2 à 3 semaines.", 12, Ui.MUTED);

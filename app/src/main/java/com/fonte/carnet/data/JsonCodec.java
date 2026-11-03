@@ -249,6 +249,10 @@ final class JsonCodec {
         pj.put("avoid", p.avoid == null ? "" : p.avoid);
         pj.put("batch", p.batch);
         pj.put("variety", p.variety);
+        JSONArray pantry = new JSONArray();
+        for (String id : p.pantry) pantry.put(id);
+        pj.put("pantry", pantry);
+        pj.put("complete", p.complete);
         o.put("mealPrefs", pj);
         MealPlan plan = s.mealPlan;
         if (plan == null) return;
@@ -320,6 +324,14 @@ final class JsonCodec {
             p.avoid = pj.optString("avoid", "");
             p.batch = pj.optBoolean("batch", true);
             p.variety = Math.max(0, Math.min(2, pj.optInt("variety", 1)));
+            JSONArray pantry = pj.optJSONArray("pantry");
+            if (pantry != null) {
+                for (int i = 0; i < pantry.length(); i++) {
+                    String id = pantry.optString(i, "");
+                    if (!id.isEmpty() && !p.pantry.contains(id)) p.pantry.add(id);
+                }
+            }
+            p.complete = pj.optBoolean("complete", true);
             s.mealPrefs = p;
         }
         JSONObject j = o.optJSONObject("mealPlan");

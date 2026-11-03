@@ -196,6 +196,67 @@ public final class Recipes {
                 steps("Dorer le tofu en cubes dans l'huile, puis le réserver.",
                         "Faire revenir oignon, ail, curcuma et tomates, remettre le tofu et mijoter 10 min.",
                         "Servir avec le riz et les lentilles.")));
+        // Cuisine réunionnaise
+        l.add(rec("plat_rougail_morue", MAIN, "Rougail morue, riz & grains", 40, tags(FISH, CREOLE, BUDGET),
+                ing(p("morue", 160), r("riz_blanc", 200), r("grains", 100), v("tomate", 150), f("huile", 10)),
+                steps("Dessaler la morue la veille (24 h au frais, en changeant l'eau 3 fois), puis l'effeuiller.",
+                        "Faire revenir oignon, ail et piment dans l'huile, ajouter la morue 5 min.",
+                        "Ajouter les tomates en dés et laisser compoter 15 min.",
+                        "Servir avec le riz et les grains.")));
+        l.add(rec("plat_rougail_zoeufs", MAIN, "Rougail z'œufs, riz & brèdes", 25, tags(CREOLE, BUDGET),
+                ing(p("oeuf", 180), r("riz_blanc", 200), v("tomate", 150), v("bredes", 100), f("huile", 5)),
+                steps("Faire revenir l'oignon, l'ail et le curcuma dans l'huile.",
+                        "Ajouter les tomates en dés et le piment, laisser compoter 10 min.",
+                        "Casser les œufs dans le rougail, couvrir et cuire 6 min.",
+                        "Servir avec le riz et les brèdes sautées à l'ail.")));
+        l.add(rec("plat_massale_poulet", MAIN, "Massalé de poulet, riz & grains", 45, tags(MEAT, CREOLE),
+                ing(p("poulet_cuisse", 170), r("riz_blanc", 200), r("grains", 80), v("tomate", 100), f("huile", 10)),
+                steps("Faire revenir le poulet dans l'huile avec oignon, ail, gingembre et 1 cuillère de massalé.",
+                        "Ajouter les tomates et un fond d'eau, couvrir et mijoter 30 min.",
+                        "Servir avec le riz et les grains.")));
+        l.add(rec("plat_massale_cabri", MAIN, "Massalé cabri, riz & grains", 90, tags(MEAT, CREOLE, PRICEY),
+                ing(p("cabri", 170), r("riz_blanc", 200), r("grains", 80), v("tomate", 100), f("huile", 10)),
+                steps("Faire mariner le cabri avec ail, gingembre et massalé (1 h ou la veille).",
+                        "Le saisir dans l'huile, ajouter oignon et tomates, couvrir d'eau.",
+                        "Mijoter 1 h 15 à couvert (ou 35 min à la cocotte-minute).",
+                        "Servir avec le riz et les grains.")));
+        l.add(rec("plat_cari_camarons", MAIN, "Cari camarons & riz", 30, tags(FISH, CREOLE, PRICEY),
+                ing(p("camarons", 180), r("riz_blanc", 220), v("tomate", 100), f("huile", 10)),
+                steps("Faire revenir oignon, ail, gingembre et curcuma dans l'huile.",
+                        "Ajouter les tomates et le thym, laisser compoter 10 min.",
+                        "Ajouter les camarons et cuire 5 à 6 min à couvert.",
+                        "Servir avec le riz.")));
+        l.add(rec("plat_civet_zourite", MAIN, "Civet zourite, riz & grains", 70, tags(FISH, CREOLE),
+                ing(p("zourite", 170), r("riz_blanc", 200), r("grains", 80), v("tomate", 100), f("huile", 10)),
+                steps("Cuire le zourite 40 min à la cocotte-minute, puis le couper en morceaux.",
+                        "Le faire revenir dans l'huile avec oignon, ail, thym et curcuma.",
+                        "Ajouter les tomates et mijoter 20 min.",
+                        "Servir avec le riz et les grains.")));
+        l.add(rec("plat_cari_ti_jacques", MAIN, "Cari ti jacques, poulet & riz", 50, tags(MEAT, CREOLE),
+                ing(p("poulet_blanc", 140), r("riz_blanc", 200), v("ti_jacques", 200), f("huile", 10)),
+                steps("Faire revenir le poulet en morceaux dans l'huile, puis le réserver.",
+                        "Faire revenir le ti jacques en morceaux avec oignon, ail, gingembre et curcuma, mijoter 25 min.",
+                        "Remettre le poulet 10 min et servir avec le riz.")));
+        l.add(rec("plat_zembrocal", MAIN, "Zembrocal & poulet grillé", 40, tags(MEAT, CREOLE, BUDGET),
+                ing(p("poulet_blanc", 150), r("riz_blanc", 180), r("haricots_rouges", 100), f("huile", 10)),
+                steps("Faire revenir oignon et curcuma dans l'huile, ajouter le riz et les haricots rouges.",
+                        "Couvrir d'eau (1,5 fois le volume), saler et cuire 15 min à couvert.",
+                        "Griller le poulet 8 min et le servir avec le zembrocal.")));
+        l.add(rec("plat_bredes_poisson", MAIN, "Poisson, brèdes & riz", 25, tags(FISH, CREOLE),
+                ing(p("cabillaud", 180), r("riz_blanc", 200), v("bredes", 150), f("huile", 10)),
+                steps("Cuire le riz 12 min.",
+                        "Faire fondre les brèdes 5 min à la poêle avec l'huile et l'ail.",
+                        "Cuire le poisson 4 min de chaque côté et servir avec les brèdes et le riz.")));
+        l.add(rec("plat_gratin_chouchou", MAIN, "Gratin chouchou, dinde & riz", 50, tags(MEAT, CREOLE, LACTOSE),
+                ing(p("dinde", 150), r("riz_blanc", 150), v("chouchou", 250), f("emmental", 25)),
+                steps("Cuire le chouchou en dés 15 min à l'eau, puis l'égoutter et l'écraser grossièrement.",
+                        "Le mettre dans un plat avec ail et muscade, couvrir de fromage râpé et gratiner 20 min à 200 °C.",
+                        "Saisir la dinde 4 min de chaque côté et servir avec le gratin et le riz.")));
+        l.add(rec("plat_lentilles_cilaos", MAIN, "Lentilles de Cilaos, poulet & riz", 40, tags(MEAT, CREOLE, BUDGET),
+                ing(p("poulet_cuisse", 150), r("lentilles", 180), r("riz_blanc", 150), v("tomate", 100), f("huile", 5)),
+                steps("Cuire les lentilles 25 min avec oignon, ail, thym et tomate.",
+                        "Dorer le poulet dans l'huile 10 min, puis l'ajouter aux lentilles 10 min.",
+                        "Servir avec le riz.")));
         l.add(rec("plat_tofu_quinoa", MAIN, "Tofu sauté, quinoa & brocolis", 25, tags(),
                 ing(p("tofu", 150), r("quinoa", 200), v("brocoli", 150), f("huile", 10)),
                 steps("Rincer le quinoa et le cuire 12 min.",
@@ -301,10 +362,11 @@ public final class Recipes {
         return cache;
     }
 
+    /** Recette de la base, ou plat composé / adapté (« Composer mes repas »). */
     public static Recipe find(String id) {
         if (id == null) return null;
         for (Recipe r : all()) if (r.id.equals(id)) return r;
-        return null;
+        return Composer.resolve(id);
     }
 
     public static List<Recipe> of(String kind) {

@@ -154,6 +154,9 @@ public class NutritionTest {
                 assertTrue(f.name + " : " + atwater + " vs " + f.kcal, Math.abs(atwater - f.kcal) <= f.kcal * 0.2 + 10);
             }
         }
+        // Glucides hors fibres (convention des étiquettes européennes).
+        assertEquals(1.8, Foods.find("avocat").carbs, 1e-9);
+        assertEquals(12.5, Foods.find("lentilles").carbs, 1e-9);
         assertFalse(Foods.search(Foods.all(), "poulet").isEmpty());
         assertEquals("oeuf", Foods.search(Foods.all(), "oeuf entier").get(0).id);
         assertEquals(Foods.all().size(), Foods.search(Foods.all(), "").size());

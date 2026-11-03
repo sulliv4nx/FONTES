@@ -15,7 +15,7 @@ public class MealPlannerTest {
     private static final int START = 20261103; // mardi 3 novembre 2026
 
     private static MealPlanner.Targets gain() {
-        return new MealPlanner.Targets(2500, 200, 285, 70);
+        return new MealPlanner.Targets(2500, 200, 268, 70);
     }
 
     private static MealPrefs prefs() {
@@ -107,7 +107,7 @@ public class MealPlannerTest {
 
     @Test
     public void lighterTargetsToo() {
-        MealPlanner.Targets lose = new MealPlanner.Targets(1800, 150, 180, 55);
+        MealPlanner.Targets lose = new MealPlanner.Targets(1800, 150, 176, 55);
         for (long seed = 1; seed <= 20; seed++) {
             MealPrefs p = prefs();
             p.meals = 4;

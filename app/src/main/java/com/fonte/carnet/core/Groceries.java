@@ -103,6 +103,10 @@ public final class Groceries {
         put(m, pc("oeuf", "Œuf", "Œufs", MEAT, 60, "œuf", "œufs", true));
         put(m, g("blanc_oeuf", "Blancs d'œufs", "Blancs d'œufs (brique)", FRESH, 1, null));
         put(m, g("saucisse", "Saucisse fumée", "Saucisses fumées", MEAT, 1, null));
+        put(m, g("morue", "Morue", "Morue salée", MEAT, 0.8, null));
+        put(m, g("camarons", "Camarons", "Camarons", MEAT, 1.2, "cru"));
+        put(m, g("cabri", "Cabri", "Cabri en morceaux", MEAT, 1.4, "cru"));
+        put(m, g("zourite", "Zourite", "Zourite (poulpe)", MEAT, 1.6, "cru"));
         put(m, g("cari_poulet", "Cari poulet", "Cuisses de poulet (pour le cari)", MEAT, 0.75, null));
         put(m, g("rougail_saucisse", "Rougail saucisse", "Saucisses fumées (pour le rougail)", MEAT, 0.6, null));
         put(m, pc("thon", "Thon au naturel", "Thon au naturel", GROCERY, 100, "boîte", "boîtes", false));
@@ -137,6 +141,9 @@ public final class Groceries {
         put(m, g("courgette", "Courgette", "Courgettes", PRODUCE, 1.1, null));
         put(m, g("epinards", "Épinards", "Épinards surgelés", PRODUCE, 1, null));
         put(m, g("chouchou", "Chouchou", "Chouchous", PRODUCE, 1.1, null));
+        put(m, g("bredes", "Brèdes", "Brèdes (mafane, chouchou…)", PRODUCE, 2, "frais"));
+        put(m, g("ti_jacques", "Ti jacques", "Ti jacques", PRODUCE, 1.1, null));
+        put(m, g("citrouille", "Citrouille", "Citrouille", PRODUCE, 1.1, null));
         put(m, g("pdt", "Pommes de terre", "Pommes de terre", PRODUCE, 1.05, null));
         put(m, g("patate_douce", "Patate douce", "Patates douces", PRODUCE, 1.1, null));
         put(m, pc("tomate", "Tomate", "Tomates", PRODUCE, 120, "tomate", "tomates", false));

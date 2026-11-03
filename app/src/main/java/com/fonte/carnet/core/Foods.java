@@ -8,7 +8,9 @@ import java.util.Locale;
 
 /**
  * Base d'aliments courants. Valeurs moyennes indicatives pour 100 g (aliments cuits quand c'est précisé),
- * d'après les tables de composition usuelles. Pour un produit précis, le code-barres ou l'étiquette font foi.
+ * d'après les tables de composition usuelles. Les glucides sont comptés HORS FIBRES, comme sur les
+ * étiquettes françaises et européennes (et comme les fiches lues par code-barres ou photo d'étiquette).
+ * Pour un produit précis, le code-barres ou l'étiquette font foi.
  */
 public final class Foods {
     private Foods() {
@@ -52,7 +54,11 @@ public final class Foods {
         l.add(f("crevettes", "Crevettes cuites", PROTEINS, 99, 24, 0.2, 0.3, 100, "1 portion"));
         l.add(f("oeuf", "Œuf entier", PROTEINS, 143, 12.6, 0.7, 9.5, 60, "1 œuf"));
         l.add(f("blanc_oeuf", "Blanc d'œuf", PROTEINS, 52, 11, 0.7, 0.2, 33, "1 blanc"));
-        l.add(f("tofu", "Tofu ferme", PROTEINS, 144, 17.3, 2.8, 8.7, 100, "1 portion"));
+        l.add(f("tofu", "Tofu ferme", PROTEINS, 144, 17.3, 2, 8.7, 100, "1 portion"));
+        l.add(f("morue", "Morue dessalée cuite", PROTEINS, 105, 23, 0, 0.9, 150, "1 portion"));
+        l.add(f("camarons", "Camarons (crevettes d'eau douce) cuits", PROTEINS, 100, 21, 0.5, 1.5, 150, "1 portion"));
+        l.add(f("cabri", "Cabri (chèvre) cuit", PROTEINS, 143, 27, 0, 3, 150, "1 portion"));
+        l.add(f("zourite", "Zourite (poulpe) cuit", PROTEINS, 164, 29.8, 4.4, 2.1, 150, "1 portion"));
         l.add(f("whey", "Protéine en poudre (whey)", PROTEINS, 380, 78, 6, 5, 30, "1 dose"));
         // Produits laitiers
         l.add(f("lait_demi", "Lait demi-écrémé", DAIRY, 46, 3.3, 4.8, 1.6, 250, "1 verre"));
@@ -66,53 +72,56 @@ public final class Foods {
         l.add(f("camembert", "Camembert", DAIRY, 300, 20, 0.5, 24, 30, "1 part"));
         // Féculents et céréales (cuits sauf mention)
         l.add(f("riz_blanc", "Riz blanc cuit", STARCH, 130, 2.7, 28, 0.3, 200, "1 assiette"));
-        l.add(f("riz_complet", "Riz complet cuit", STARCH, 123, 2.7, 25.6, 1, 200, "1 assiette"));
-        l.add(f("pates", "Pâtes cuites", STARCH, 150, 5.5, 30, 0.9, 200, "1 assiette"));
-        l.add(f("pates_completes", "Pâtes complètes cuites", STARCH, 124, 5.3, 26.5, 0.5, 200, "1 assiette"));
-        l.add(f("quinoa", "Quinoa cuit", STARCH, 120, 4.4, 21.3, 1.9, 150, "1 portion"));
-        l.add(f("semoule", "Semoule cuite", STARCH, 112, 3.8, 23, 0.2, 150, "1 portion"));
-        l.add(f("pdt", "Pomme de terre cuite", STARCH, 87, 1.9, 20, 0.1, 200, "2 moyennes"));
-        l.add(f("patate_douce", "Patate douce cuite", STARCH, 90, 2, 20.7, 0.2, 200, "1 moyenne"));
-        l.add(f("frites", "Frites", STARCH, 312, 3.4, 41, 15, 120, "1 portion"));
+        l.add(f("riz_complet", "Riz complet cuit", STARCH, 123, 2.7, 23.8, 1, 200, "1 assiette"));
+        l.add(f("pates", "Pâtes cuites", STARCH, 150, 5.5, 28, 0.9, 200, "1 assiette"));
+        l.add(f("pates_completes", "Pâtes complètes cuites", STARCH, 124, 5.3, 23, 0.5, 200, "1 assiette"));
+        l.add(f("quinoa", "Quinoa cuit", STARCH, 120, 4.4, 18.5, 1.9, 150, "1 portion"));
+        l.add(f("semoule", "Semoule cuite", STARCH, 112, 3.8, 21.8, 0.2, 150, "1 portion"));
+        l.add(f("pdt", "Pomme de terre cuite", STARCH, 87, 1.9, 18.3, 0.1, 200, "2 moyennes"));
+        l.add(f("patate_douce", "Patate douce cuite", STARCH, 90, 2, 17.4, 0.2, 200, "1 moyenne"));
+        l.add(f("frites", "Frites", STARCH, 312, 3.4, 37, 15, 120, "1 portion"));
         l.add(f("baguette", "Pain baguette", STARCH, 270, 9, 56, 1.3, 50, "1/5 de baguette"));
         l.add(f("pain_complet", "Pain complet", STARCH, 247, 13, 41, 3.4, 35, "1 tranche"));
         l.add(f("pain_mie", "Pain de mie", STARCH, 266, 8.5, 49, 3.5, 25, "1 tranche"));
-        l.add(f("avoine", "Flocons d'avoine (crus)", STARCH, 389, 16.9, 66, 6.9, 50, "1 bol"));
-        l.add(f("muesli", "Muesli", STARCH, 370, 10, 66, 6, 50, "1 bol"));
-        l.add(f("galette_riz", "Galette de riz soufflé", STARCH, 387, 8, 81, 2.8, 9, "1 galette"));
-        l.add(f("lentilles", "Lentilles cuites", STARCH, 116, 9, 20, 0.4, 200, "1 assiette"));
-        l.add(f("pois_chiches", "Pois chiches cuits", STARCH, 164, 8.9, 27.4, 2.6, 150, "1 portion"));
-        l.add(f("haricots_rouges", "Haricots rouges cuits", STARCH, 127, 8.7, 22.8, 0.5, 150, "1 portion"));
-        l.add(f("grains", "Grains créoles (lentilles, haricots cuisinés)", STARCH, 130, 8, 18, 3, 150, "1 louche"));
-        l.add(f("mais", "Maïs doux (boîte)", STARCH, 86, 3.2, 19, 1.2, 100, "1 portion"));
+        l.add(f("avoine", "Flocons d'avoine (crus)", STARCH, 389, 16.9, 58.7, 6.9, 50, "1 bol"));
+        l.add(f("muesli", "Muesli", STARCH, 370, 10, 62, 6, 50, "1 bol"));
+        l.add(f("galette_riz", "Galette de riz soufflé", STARCH, 387, 8, 78, 2.8, 9, "1 galette"));
+        l.add(f("lentilles", "Lentilles cuites", STARCH, 116, 9, 12.5, 0.4, 200, "1 assiette"));
+        l.add(f("pois_chiches", "Pois chiches cuits", STARCH, 164, 8.9, 18, 2.6, 150, "1 portion"));
+        l.add(f("haricots_rouges", "Haricots rouges cuits", STARCH, 127, 8.7, 15, 0.5, 150, "1 portion"));
+        l.add(f("grains", "Grains créoles (lentilles, haricots cuisinés)", STARCH, 130, 8, 12, 3, 150, "1 louche"));
+        l.add(f("mais", "Maïs doux (boîte)", STARCH, 86, 3.2, 15, 1.2, 100, "1 portion"));
         // Légumes
-        l.add(f("brocoli", "Brocoli cuit", VEG, 35, 2.4, 7.2, 0.4, 150, "1 portion"));
-        l.add(f("haricots_verts", "Haricots verts cuits", VEG, 35, 1.9, 7.9, 0.3, 150, "1 portion"));
-        l.add(f("courgette", "Courgette cuite", VEG, 17, 1.2, 3, 0.3, 150, "1 portion"));
-        l.add(f("epinards", "Épinards cuits", VEG, 23, 3, 3.8, 0.3, 150, "1 portion"));
-        l.add(f("chouchou", "Chouchou (christophine) cuit", VEG, 24, 0.6, 5.1, 0.5, 150, "1 portion"));
-        l.add(f("tomate", "Tomate", VEG, 18, 0.9, 3.9, 0.2, 120, "1 tomate"));
-        l.add(f("carotte", "Carotte", VEG, 41, 0.9, 9.6, 0.2, 80, "1 carotte"));
-        l.add(f("salade", "Salade verte", VEG, 15, 1.4, 2.9, 0.2, 50, "1 bol"));
-        l.add(f("concombre", "Concombre", VEG, 15, 0.7, 3.6, 0.1, 100, "1/3 de concombre"));
-        l.add(f("avocat", "Avocat", VEG, 160, 2, 8.5, 14.7, 100, "1/2 avocat"));
+        l.add(f("brocoli", "Brocoli cuit", VEG, 35, 2.4, 3.9, 0.4, 150, "1 portion"));
+        l.add(f("haricots_verts", "Haricots verts cuits", VEG, 35, 1.9, 4.2, 0.3, 150, "1 portion"));
+        l.add(f("courgette", "Courgette cuite", VEG, 17, 1.2, 2, 0.3, 150, "1 portion"));
+        l.add(f("epinards", "Épinards cuits", VEG, 23, 3, 1.4, 0.3, 150, "1 portion"));
+        l.add(f("chouchou", "Chouchou (christophine) cuit", VEG, 24, 0.6, 2.3, 0.5, 150, "1 portion"));
+        l.add(f("bredes", "Brèdes cuites (mafane, chouchou, chou de Chine)", VEG, 25, 2.5, 2, 0.4, 150, "1 portion"));
+        l.add(f("ti_jacques", "Ti jacques (jacque jeune) cuit", VEG, 40, 1.5, 7, 0.3, 200, "1 portion"));
+        l.add(f("citrouille", "Citrouille cuite", VEG, 20, 0.7, 3.8, 0.1, 200, "1 portion"));
+        l.add(f("tomate", "Tomate", VEG, 18, 0.9, 2.7, 0.2, 120, "1 tomate"));
+        l.add(f("carotte", "Carotte", VEG, 41, 0.9, 6.8, 0.2, 80, "1 carotte"));
+        l.add(f("salade", "Salade verte", VEG, 15, 1.4, 1.6, 0.2, 50, "1 bol"));
+        l.add(f("concombre", "Concombre", VEG, 15, 0.7, 2.5, 0.1, 100, "1/3 de concombre"));
+        l.add(f("avocat", "Avocat", VEG, 160, 2, 1.8, 14.7, 100, "1/2 avocat"));
         // Fruits
-        l.add(f("banane", "Banane", FRUIT, 89, 1.1, 22.8, 0.3, 120, "1 banane"));
-        l.add(f("pomme", "Pomme", FRUIT, 52, 0.3, 13.8, 0.2, 150, "1 pomme"));
-        l.add(f("orange", "Orange", FRUIT, 47, 0.9, 11.8, 0.1, 150, "1 orange"));
-        l.add(f("mangue", "Mangue", FRUIT, 60, 0.8, 15, 0.4, 200, "1/2 mangue"));
-        l.add(f("ananas", "Ananas", FRUIT, 50, 0.5, 13.1, 0.1, 150, "2 tranches"));
-        l.add(f("letchis", "Letchis", FRUIT, 66, 0.8, 16.5, 0.4, 100, "10 letchis"));
-        l.add(f("fraises", "Fraises", FRUIT, 32, 0.7, 7.7, 0.3, 150, "1 barquette"));
-        l.add(f("raisin", "Raisin", FRUIT, 69, 0.7, 18, 0.2, 100, "1 grappe"));
-        l.add(f("dattes", "Dattes séchées", FRUIT, 282, 2.5, 75, 0.4, 24, "3 dattes"));
+        l.add(f("banane", "Banane", FRUIT, 89, 1.1, 20.2, 0.3, 120, "1 banane"));
+        l.add(f("pomme", "Pomme", FRUIT, 52, 0.3, 11.4, 0.2, 150, "1 pomme"));
+        l.add(f("orange", "Orange", FRUIT, 47, 0.9, 9.4, 0.1, 150, "1 orange"));
+        l.add(f("mangue", "Mangue", FRUIT, 60, 0.8, 13.4, 0.4, 200, "1/2 mangue"));
+        l.add(f("ananas", "Ananas", FRUIT, 50, 0.5, 11.7, 0.1, 150, "2 tranches"));
+        l.add(f("letchis", "Letchis", FRUIT, 66, 0.8, 15.2, 0.4, 100, "10 letchis"));
+        l.add(f("fraises", "Fraises", FRUIT, 32, 0.7, 5.7, 0.3, 150, "1 barquette"));
+        l.add(f("raisin", "Raisin", FRUIT, 69, 0.7, 17.2, 0.2, 100, "1 grappe"));
+        l.add(f("dattes", "Dattes séchées", FRUIT, 282, 2.5, 67, 0.4, 24, "3 dattes"));
         // Matières grasses et oléagineux
         l.add(f("huile", "Huile d'olive ou de colza", FAT, 884, 0, 0, 100, 10, "1 cuillère à soupe"));
         l.add(f("beurre", "Beurre", FAT, 717, 0.9, 0.1, 81, 10, "1 noisette"));
-        l.add(f("beurre_cacahuete", "Beurre de cacahuète", FAT, 588, 25, 20, 50, 15, "1 cuillère à soupe"));
-        l.add(f("amandes", "Amandes", FAT, 579, 21, 21.6, 49.9, 30, "1 poignée"));
-        l.add(f("cajou", "Noix de cajou", FAT, 553, 18, 30, 44, 30, "1 poignée"));
-        l.add(f("noix", "Noix", FAT, 654, 15, 14, 65, 30, "1 poignée"));
+        l.add(f("beurre_cacahuete", "Beurre de cacahuète", FAT, 588, 25, 13, 50, 15, "1 cuillère à soupe"));
+        l.add(f("amandes", "Amandes", FAT, 579, 21, 7, 49.9, 30, "1 poignée"));
+        l.add(f("cajou", "Noix de cajou", FAT, 553, 18, 27, 44, 30, "1 poignée"));
+        l.add(f("noix", "Noix", FAT, 654, 15, 7, 65, 30, "1 poignée"));
         // Plats (estimations moyennes)
         l.add(f("cari_poulet", "Cari poulet (sans riz)", DISHES, 150, 15, 3, 9, 250, "1 louche"));
         l.add(f("rougail_saucisse", "Rougail saucisse (sans riz)", DISHES, 230, 11, 4, 19, 250, "1 louche"));
@@ -135,7 +144,7 @@ public final class Foods {
         l.add(f("sucre", "Sucre", SWEET, 400, 0, 100, 0, 5, "1 morceau"));
         l.add(f("miel", "Miel", SWEET, 304, 0.3, 82, 0, 15, "1 cuillère"));
         l.add(f("confiture", "Confiture", SWEET, 278, 0.4, 69, 0.1, 20, "1 cuillère"));
-        l.add(f("chocolat_noir", "Chocolat noir 70 %", SWEET, 598, 7.8, 45.9, 42.6, 20, "2 carrés"));
+        l.add(f("chocolat_noir", "Chocolat noir 70 %", SWEET, 598, 7.8, 35, 42.6, 20, "2 carrés"));
         l.add(f("barre_proteinee", "Barre protéinée", SWEET, 360, 30, 35, 12, 60, "1 barre"));
         l.add(f("biscuits", "Biscuits secs", SWEET, 450, 7, 70, 15, 25, "3 biscuits"));
         cache = Collections.unmodifiableList(l);

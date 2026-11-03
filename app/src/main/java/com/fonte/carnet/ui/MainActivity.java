@@ -266,6 +266,19 @@ public class MainActivity extends Activity {
         return top();
     }
 
+    /** Revient au dernier écran de ce type dans la pile (affiché), ou null s'il n'y en a pas. */
+    public Screen backTo(Class<? extends Screen> type) {
+        for (int i = stack.size() - 1; i >= 0; i--) {
+            if (!type.isInstance(stack.get(i))) continue;
+            Screen old = top();
+            if (old != null) old.onHide();
+            while (stack.size() > i + 1) stack.remove(stack.size() - 1);
+            render();
+            return stack.get(i);
+        }
+        return null;
+    }
+
     // ---------------------------------------------------------------- navigation
 
     public void goTab(int t) {

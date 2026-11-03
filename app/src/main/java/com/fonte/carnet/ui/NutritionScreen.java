@@ -80,7 +80,7 @@ public class NutritionScreen extends Screen {
         int burned = Nutrition.total(st.burned(day));
         int target = st.targetKcal();
         int goal = target + burned;
-        Nutrition.Macros m = st.targetMacros();
+        Nutrition.Macros m = st.targetMacros(day);
         LinearLayout card = Ui.card(a);
         LinearLayout row = Ui.hbox(a);
         RingView ring = new RingView(a);
@@ -97,6 +97,12 @@ public class NutritionScreen extends Screen {
         card.addView(Ui.divider(a));
         card.addView(Ui.row(a, "Objectif (" + st.profile.goalLabel().toLowerCase(java.util.Locale.FRENCH) + ")", Fmt.kg(target) + " kcal"));
         card.addView(Ui.row(a, "+ Activité du jour", Fmt.kg(burned) + " kcal"));
+        if (burned > 0) {
+            TextView extra = Ui.text(a, "Ces " + Fmt.kg(burned) + " kcal de séance sont ajoutées en glucides : +"
+                    + Math.round(burned / 4.0) + " g aujourd'hui.", 12, Ui.MUTED);
+            extra.setPadding(0, 0, 0, Ui.dp(4));
+            card.addView(extra);
+        }
         card.addView(Ui.row(a, "− Consommé", Fmt.kg(Math.round(t.kcal)) + " kcal"));
         LinearLayout total = Ui.row(a, left >= 0 ? "Reste" : "Dépassement", Fmt.kg(Math.abs(left)) + " kcal");
         ((TextView) total.getChildAt(1)).setTextColor(left >= 0 ? Ui.ACCENT : Ui.WARN);

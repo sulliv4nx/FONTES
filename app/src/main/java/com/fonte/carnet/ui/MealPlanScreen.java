@@ -26,6 +26,12 @@ public class MealPlanScreen extends ScrollScreen {
         this.day = day;
     }
 
+    /** Affiche ce jour au prochain rendu. */
+    void select(int day) {
+        this.day = day;
+        scrollTop();
+    }
+
     @Override
     public String title() {
         return "Mes repas";
@@ -53,6 +59,7 @@ public class MealPlanScreen extends ScrollScreen {
         if (day == 0 || !plan.covers(day)) day = plan.covers(today) ? today : plan.start;
         if (today > plan.end()) c.addView(finishedCard());
         c.addView(weekStrip(plan, today));
+        c.addView(composeCard());
         if (Math.abs(st.targetKcal() - plan.kcal) >= 50) c.addView(targetChangedCard(plan));
         c.addView(summaryCard(plan));
         for (MealPlan.Meal m : plan.mealsOf(day)) c.addView(mealCard(plan, m, today));
@@ -74,6 +81,28 @@ public class MealPlanScreen extends ScrollScreen {
         card.addView(Ui.hint(a, "Un plan de 7 jours avec tes plats, collations et shakers, ajusté à ton objectif en calories et en protéines. "
                 + "La liste de courses de la semaine est calculée avec."));
         card.addView(Ui.button(a, "Créer mon plan", Ui.PRIMARY, v -> a.show(new MealSetupScreen())));
+        card.addView(Ui.button(a, "Composer avec mes ingrédients", Ui.SECONDARY, v -> a.show(new ComposeScreen())));
+        return card;
+    }
+
+    /** Accès à « Composer mes repas ». */
+    private View composeCard() {
+        LinearLayout card = Ui.clickCard(a, v -> a.show(new ComposeScreen()));
+        card.setPadding(Ui.dp(14), Ui.dp(12), Ui.dp(10), Ui.dp(12));
+        LinearLayout row = Ui.hbox(a);
+        row.addView(Ui.iconBadge(a, Icon.NUTRITION, Ui.ACCENT));
+        LinearLayout txt = Ui.vbox(a);
+        txt.setPadding(Ui.dp(12), 0, Ui.dp(8), 0);
+        txt.addView(Ui.medium(a, "Composer avec mes ingrédients", 15, Ui.TEXT));
+        java.util.List<String> mine = st.mealPrefs().pantry;
+        txt.addView(Ui.text(a, mine.isEmpty() ? "Choisis ce que tu as, Fonte propose les repas · plats réunionnais inclus"
+                : mine.size() + " ingrédient" + (mine.size() > 1 ? "s" : "") + " choisi" + (mine.size() > 1 ? "s" : "")
+                + " · voir les repas possibles", 12, Ui.MUTED));
+        row.addView(txt, Ui.weight(1));
+        android.widget.ImageView chev = new android.widget.ImageView(a);
+        chev.setImageDrawable(new Icon(Icon.CHEVRON, Ui.MUTED));
+        row.addView(chev, Ui.lp(Ui.dp(20), Ui.dp(20)));
+        card.addView(row);
         return card;
     }
 

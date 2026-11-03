@@ -16,11 +16,13 @@ import com.fonte.carnet.core.Nutrition;
 import com.fonte.carnet.core.Profile;
 import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Fmt;
+import com.fonte.carnet.core.Composer;
 import com.fonte.carnet.core.Library;
 import com.fonte.carnet.core.MealPlan;
 import com.fonte.carnet.core.MealPlanner;
 import com.fonte.carnet.core.MealPrefs;
 import com.fonte.carnet.core.Program;
+import com.fonte.carnet.core.Recipe;
 import com.fonte.carnet.core.RenfoLog;
 import com.fonte.carnet.core.Routine;
 import com.fonte.carnet.core.Session;
@@ -543,6 +545,14 @@ public final class Store {
         return Nutrition.macros(profile, weightForCalc(), targetKcal());
     }
 
+    /**
+     * Objectifs d'un jour donné : les calories dépensées en séance s'ajoutent à l'objectif, et ce
+     * supplément va aux glucides (protéines et lipides restent fixés en g/kg).
+     */
+    public Nutrition.Macros targetMacros(int day) {
+        return Nutrition.macros(profile, weightForCalc(), targetKcal() + Nutrition.total(burned(day)));
+    }
+
     public int waterTarget(int day) {
         return Nutrition.water(profile, weightForCalc(), trained(day));
     }
@@ -615,6 +625,63 @@ public final class Store {
         mealPlan.meals.set(i, fresh);
         if (wasEaten) setMealEaten(fresh, true);
         save();
+    }
+
+    /** Objectif d'un créneau (kcal, protéines, lipides) : celui du plan s'il y en a un, sinon calculé. */
+    public double[] slotTarget(String slot) {
+        int today = Days.today();
+        if (mealPlan != null) {
+            double k = 0, p = 0, f = 0;
+            int n = 0;
+            for (MealPlan.Meal m : mealPlan.meals) {
+                if (!m.slot.equals(slot) || m.day < today || m.targetKcal <= 0) continue;
+                k += m.targetKcal;
+                p += m.targetProtein;
+                f += m.targetFat;
+                n++;
+            }
+            if (n > 0) return new double[]{k / n, p / n, f / n};
+        }
+        MealPrefs prefs = mealPrefs();
+        java.util.List<String> slots = MealPlanner.slots(prefs.meals, MealPlan.SHAKER.equals(slot));
+        if (!slots.contains(slot)) slots = MealPlanner.slots(5, MealPlan.SHAKER.equals(slot));
+        MealPlanner.Targets t = mealTargets();
+        double share = MealPlanner.share(slots, slot);
+        return new double[]{t.kcal * share, t.protein * MealPlanner.proteinShare(slots, slot), t.fat * share};
+    }
+
+    /** Plan en cours qui couvre aujourd'hui (il est créé avec les réglages actuels s'il n'y en a pas). */
+    public MealPlan ensureMealPlan() {
+        int today = Days.today();
+        if (mealPlan == null || today > mealPlan.end()) generateMealPlan(mealPrefs(), today);
+        return mealPlan;
+    }
+
+    /** Les ingrédients choisis sont notés comme « déjà là » dans la liste de courses. */
+    private void markOwned(java.util.Collection<String> owned) {
+        if (mealPlan == null || owned == null) return;
+        java.util.Set<String> used = new java.util.HashSet<>();
+        for (MealPlan.Meal m : mealPlan.meals) for (MealPlan.Item i : m.items) used.add(i.foodId);
+        for (String id : owned) if (used.contains(id)) mealPlan.checked.add(id);
+    }
+
+    /** Remplit la semaine avec les plats validés ; renvoie le nombre de repas remplacés. */
+    public int placeWeek(java.util.List<Recipe> dishes, java.util.Collection<String> owned) {
+        MealPlan plan = ensureMealPlan();
+        java.util.List<Composer.Placement> list = Composer.fillWeek(plan, dishes, Days.today(), mealPrefs.batch);
+        for (Composer.Placement p : list) replaceMeal(p.old, p.fresh);
+        markOwned(owned);
+        save();
+        return list.size();
+    }
+
+    /** Place un plat à un repas précis du plan. */
+    public MealPlan.Meal placeOne(Recipe dish, MealPlan.Meal target, java.util.Collection<String> owned) {
+        MealPlan.Meal fresh = Composer.fit(dish, target);
+        replaceMeal(target, fresh);
+        markOwned(owned);
+        save();
+        return fresh;
     }
 
     public void toggleShop(String key) {
