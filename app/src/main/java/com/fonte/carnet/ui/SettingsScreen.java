@@ -77,7 +77,7 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "À propos"));
         LinearLayout about = Ui.card(a);
-        about.addView(Ui.medium(a, "Fonte 1.0", 16, Ui.TEXT));
+        about.addView(Ui.medium(a, "Fonte 1.1", 16, Ui.TEXT));
         about.addView(Ui.text(a, st.sessions.size() + " séances enregistrées · "
                 + Fmt.plural(st.templates.size(), "modèle"), 13, Ui.MUTED));
         TextView safety = Ui.text(a, "1RM estimé avec la formule d'Epley. Les programmes à pourcentages sont exigeants : "
