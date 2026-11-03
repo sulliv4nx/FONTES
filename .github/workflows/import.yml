@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'Fonte-projet-android.zip'
+      - '.github/workflows/import.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,7 +16,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Extraire le projet Android
         shell: bash
@@ -24,6 +24,7 @@ jobs:
           unzip -q Fonte-projet-android.zip -d /tmp/fonte-import
           test -f /tmp/fonte-import/Fonte/settings.gradle.kts
           cp -a /tmp/fonte-import/Fonte/. .
+          test -f app/build.gradle.kts
           chmod +x gradlew
           rm -f Fonte-projet-android.zip .github/workflows/import.yml
       - name: Enregistrer les fichiers du projet
