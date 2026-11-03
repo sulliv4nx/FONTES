@@ -33,6 +33,11 @@ public class Icon extends Drawable {
     public static final int RULER = 20;
     public static final int SPARK = 21;
     public static final int EDIT = 22;
+    public static final int CART = 23;
+    public static final int SWAP = 24;
+    public static final int SHARE = 25;
+    public static final int SHAKER = 26;
+    public static final int COPY = 27;
 
     private final int type;
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -320,6 +325,56 @@ public class Icon extends Drawable {
                 path.lineTo(x(19), y(8.5f));
                 path.lineTo(x(8.5f), y(19));
                 path.close();
+                c.drawPath(path, stroke);
+                break;
+            case CART:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(3), y(4));
+                path.lineTo(x(5), y(4));
+                path.lineTo(x(7.4f), y(15));
+                path.lineTo(x(18.5f), y(15));
+                path.lineTo(x(21), y(8));
+                path.lineTo(x(6.1f), y(8));
+                c.drawPath(path, stroke);
+                circle(9, 19.5f, 1.5f, true);
+                circle(17, 19.5f, 1.5f, true);
+                break;
+            case SWAP:
+                line(4, 8, 19, 8);
+                line(15, 4, 19, 8);
+                line(15, 12, 19, 8);
+                line(20, 16, 5, 16);
+                line(9, 12, 5, 16);
+                line(9, 20, 5, 16);
+                break;
+            case SHARE:
+                circle(17.5f, 5.5f, 2.5f, false);
+                circle(6.5f, 12, 2.5f, false);
+                circle(17.5f, 18.5f, 2.5f, false);
+                line(8.7f, 10.7f, 15.3f, 6.8f);
+                line(8.7f, 13.3f, 15.3f, 17.2f);
+                break;
+            case SHAKER:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(7), y(4));
+                path.lineTo(x(17), y(4));
+                path.lineTo(x(15.5f), y(20));
+                path.lineTo(x(8.5f), y(20));
+                path.close();
+                c.drawPath(path, stroke);
+                line(7.5f, 9, 16.5f, 9);
+                break;
+            case COPY:
+                box(8, 8, 20, 20, 2.5f, false);
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(16), y(8));
+                path.lineTo(x(16), y(4));
+                path.lineTo(x(4), y(4));
+                path.lineTo(x(4), y(16));
+                path.lineTo(x(8), y(16));
                 c.drawPath(path, stroke);
                 break;
             default:

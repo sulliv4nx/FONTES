@@ -618,4 +618,178 @@ public final class Ui {
         InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
     }
+    // ---------------------------------------------------------------- v4 : repas
+
+    /** Bouton compact (cartes de repas). */
+    public static TextView smallButton(Context c, String label, int kind, View.OnClickListener l) {
+        TextView b = button(c, label, kind, l);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        b.setMinHeight(dp(44));
+        b.setPadding(dp(8), dp(8), dp(8), dp(8));
+        b.setSingleLine(true);
+        b.setEllipsize(TextUtils.TruncateAt.END);
+        if (kind == GHOST) b.setBackground(pressable(outline(0x00000000, LINE, 12), 12));
+        else b.setBackground(pressable(rect(kind == PRIMARY ? ACCENT : SURFACE2, 12), 12));
+        b.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
+        return b;
+    }
+
+    /** Rangée de boutons de même largeur. */
+    public static LinearLayout buttonRow(Context c, View... buttons) {
+        LinearLayout r = hbox(c);
+        r.setLayoutParams(mlp(-1, -2, 0, 10, 0, 0));
+        for (int i = 0; i < buttons.length; i++) {
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1);
+            if (i > 0) p.leftMargin = dp(8);
+            r.addView(buttons[i], p);
+        }
+        return r;
+    }
+
+    /** Pastilles « P 45 g · G 87 g · L 11 g ». */
+    public static LinearLayout macroDots(Context c, double p, double carbs, double fat) {
+        LinearLayout r = hbox(c);
+        r.setLayoutParams(mlp(-1, -2, 0, 6, 0, 0));
+        double[] v = {p, carbs, fat};
+        String[] l = {"P ", "G ", "L "};
+        int[] col = {PROTEIN, CARBS, FAT};
+        for (int i = 0; i < 3; i++) {
+            View dot = new View(c);
+            dot.setBackground(rect(col[i], 4));
+            LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(dp(8), dp(8));
+            dotLp.rightMargin = dp(5);
+            if (i > 0) dotLp.leftMargin = dp(14);
+            r.addView(dot, dotLp);
+            TextView t = text(c, l[i] + com.fonte.carnet.core.Fmt.kg(Math.round(v[i])) + " g", 12, MUTED);
+            tabular(t);
+            r.addView(t);
+        }
+        return r;
+    }
+
+    /** Ligne avec titre, sous-titre et interrupteur. */
+    public static LinearLayout switchRow(Context c, String title, String sub, boolean on, java.util.function.Consumer<Boolean> cb) {
+        LinearLayout r = hbox(c);
+        r.setMinimumHeight(dp(48));
+        LinearLayout txt = vbox(c);
+        txt.addView(medium(c, title, 15, TEXT));
+        if (sub != null) {
+            TextView s = text(c, sub, 13, MUTED);
+            s.setPadding(0, dp(2), 0, 0);
+            txt.addView(s);
+        }
+        r.addView(txt, weight(1));
+        android.widget.Switch sw = new android.widget.Switch(c);
+        sw.setChecked(on);
+        int[][] states = {{android.R.attr.state_checked}, {}};
+        sw.setThumbTintList(new ColorStateList(states, new int[]{ACCENT, MUTED}));
+        sw.setTrackTintList(new ColorStateList(states, new int[]{0x8069E6D2, SURFACE2}));
+        sw.setContentDescription(title);
+        sw.setOnCheckedChangeListener((b, v) -> cb.accept(v));
+        r.addView(sw);
+        r.setOnClickListener(v -> sw.toggle());
+        return r;
+    }
+
+    /** Puce sélectionnable (préférences), style contour. */
+    public static TextView toggleChip(Context c, String label, boolean selected, View.OnClickListener l) {
+        TextView t = medium(c, (selected ? "✓ " : "") + label, 13, selected ? ACCENT : MUTED);
+        t.setGravity(Gravity.CENTER);
+        t.setMinHeight(dp(40));
+        t.setPadding(dp(14), dp(8), dp(14), dp(8));
+        t.setBackground(pressable(selected ? outline(ACCENT_SOFT, ACCENT, 20) : outline(0x00000000, LINE, 20), 20));
+        t.setOnClickListener(l);
+        return t;
+    }
+
+    /** Conteneur qui passe à la ligne quand la place manque. */
+    public static ViewGroup flow(Context c, View... children) {
+        Flow f = new Flow(c);
+        for (View v : children) f.addView(v);
+        f.setLayoutParams(mlp(-1, -2, 0, 0, 0, 0));
+        return f;
+    }
+
+    static final class Flow extends ViewGroup {
+        private final int gap = dp(8);
+
+        Flow(Context c) {
+            super(c);
+        }
+
+        @Override
+        protected void onMeasure(int wSpec, int hSpec) {
+            int width = MeasureSpec.getSize(wSpec);
+            int x = 0;
+            int y = 0;
+            int line = 0;
+            for (int i = 0; i < getChildCount(); i++) {
+                View ch = getChildAt(i);
+                ch.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+                int w = ch.getMeasuredWidth();
+                if (x > 0 && x + w > width) {
+                    x = 0;
+                    y += line + gap;
+                    line = 0;
+                }
+                x += w + gap;
+                line = Math.max(line, ch.getMeasuredHeight());
+            }
+            setMeasuredDimension(width, y + line);
+        }
+
+        @Override
+        protected void onLayout(boolean changed, int l, int t, int r, int b) {
+            int width = r - l;
+            int x = 0;
+            int y = 0;
+            int line = 0;
+            for (int i = 0; i < getChildCount(); i++) {
+                View ch = getChildAt(i);
+                int w = ch.getMeasuredWidth();
+                int h = ch.getMeasuredHeight();
+                if (x > 0 && x + w > width) {
+                    x = 0;
+                    y += line + gap;
+                    line = 0;
+                }
+                ch.layout(x, y, x + w, y + h);
+                x += w + gap;
+                line = Math.max(line, h);
+            }
+        }
+    }
+
+    /** Feuille qui monte du bas de l'écran. */
+    public static android.app.Dialog sheet(Context c, View content) {
+        android.app.Dialog d = new android.app.Dialog(c);
+        d.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        LinearLayout box = vbox(c);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(SURFACE);
+        float r = dp(24);
+        bg.setCornerRadii(new float[]{r, r, r, r, 0, 0, 0, 0});
+        bg.setStroke(dp(1.5f), LINE);
+        box.setBackground(bg);
+        int side = dp(pad(c));
+        box.setPadding(side, dp(10), side, dp(20));
+        View handle = new View(c);
+        handle.setBackground(rect(LINE, 2));
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(dp(40), dp(4));
+        hp.gravity = Gravity.CENTER_HORIZONTAL;
+        hp.bottomMargin = dp(12);
+        box.addView(handle, hp);
+        ScrollView sv = new ScrollView(c);
+        sv.addView(content);
+        box.addView(sv, lp(-1, -2));
+        d.setContentView(box);
+        android.view.Window w = d.getWindow();
+        if (w != null) {
+            w.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0x00000000));
+            w.setLayout(-1, -2);
+            w.setGravity(Gravity.BOTTOM);
+            w.setDimAmount(0.72f);
+        }
+        return d;
+    }
 }

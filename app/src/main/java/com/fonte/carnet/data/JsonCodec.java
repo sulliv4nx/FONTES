@@ -4,6 +4,8 @@ import com.fonte.carnet.core.BodyLog;
 import com.fonte.carnet.core.Exercise;
 import com.fonte.carnet.core.Food;
 import com.fonte.carnet.core.FoodEntry;
+import com.fonte.carnet.core.MealPlan;
+import com.fonte.carnet.core.MealPrefs;
 import com.fonte.carnet.core.Profile;
 import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Library;
@@ -226,6 +228,150 @@ final class JsonCodec {
             measures.put(j);
         }
         o.put("measures", measures);
+        writeMeals(s, o);
+    }
+
+    // ---------------------------------------------------------------- mes repas (v4)
+
+    private static void writeMeals(Store s, JSONObject o) throws JSONException {
+        MealPrefs p = s.mealPrefs;
+        JSONObject pj = new JSONObject();
+        pj.put("meals", p.meals);
+        pj.put("shaker", p.shaker);
+        pj.put("shakerEveryDay", p.shakerEveryDay);
+        pj.put("trainingMask", p.trainingMask);
+        pj.put("noPork", p.noPork);
+        pj.put("vegetarian", p.vegetarian);
+        pj.put("lactoseFree", p.lactoseFree);
+        pj.put("fish", p.fish);
+        pj.put("creole", p.creole);
+        pj.put("budget", p.budget);
+        pj.put("avoid", p.avoid == null ? "" : p.avoid);
+        pj.put("batch", p.batch);
+        pj.put("variety", p.variety);
+        o.put("mealPrefs", pj);
+        MealPlan plan = s.mealPlan;
+        if (plan == null) return;
+        JSONObject j = new JSONObject();
+        j.put("start", plan.start);
+        j.put("days", plan.days);
+        j.put("seed", plan.seed);
+        j.put("created", plan.created);
+        j.put("kcal", plan.kcal);
+        j.put("protein", plan.protein);
+        j.put("carbs", plan.carbs);
+        j.put("fat", plan.fat);
+        JSONArray meals = new JSONArray();
+        for (MealPlan.Meal m : plan.meals) {
+            JSONObject mj = new JSONObject();
+            mj.put("day", m.day);
+            mj.put("slot", m.slot);
+            if (m.recipeId != null) mj.put("recipe", m.recipeId);
+            mj.put("name", m.name);
+            mj.put("tk", finite(m.targetKcal));
+            mj.put("tp", finite(m.targetProtein));
+            mj.put("tf", finite(m.targetFat));
+            mj.put("eaten", m.eaten);
+            JSONArray items = new JSONArray();
+            for (MealPlan.Item i : m.items) {
+                JSONObject ij = new JSONObject();
+                ij.put("food", i.foodId);
+                ij.put("name", i.name);
+                ij.put("g", finite(i.grams));
+                items.put(ij);
+            }
+            mj.put("items", items);
+            JSONArray entries = new JSONArray();
+            for (Long id : m.entries) entries.put(id);
+            mj.put("entries", entries);
+            meals.put(mj);
+        }
+        j.put("meals", meals);
+        JSONArray checked = new JSONArray();
+        for (String k : plan.checked) checked.put(k);
+        j.put("checked", checked);
+        JSONArray extras = new JSONArray();
+        for (MealPlan.Extra x : plan.extras) {
+            JSONObject xj = new JSONObject();
+            xj.put("name", x.name);
+            xj.put("checked", x.checked);
+            extras.put(xj);
+        }
+        j.put("extras", extras);
+        o.put("mealPlan", j);
+    }
+
+    private static void readMeals(Store s, JSONObject o) throws JSONException {
+        JSONObject pj = o.optJSONObject("mealPrefs");
+        if (pj != null) {
+            MealPrefs p = new MealPrefs();
+            int meals = pj.optInt("meals", 5);
+            p.meals = meals < 3 ? 3 : Math.min(5, meals);
+            p.shaker = pj.optBoolean("shaker", true);
+            p.shakerEveryDay = pj.optBoolean("shakerEveryDay", false);
+            p.trainingMask = pj.optInt("trainingMask", -1);
+            if (p.trainingMask > 127) p.trainingMask = -1;
+            p.noPork = pj.optBoolean("noPork", false);
+            p.vegetarian = pj.optBoolean("vegetarian", false);
+            p.lactoseFree = pj.optBoolean("lactoseFree", false);
+            p.fish = pj.optBoolean("fish", false);
+            p.creole = pj.optBoolean("creole", false);
+            p.budget = pj.optBoolean("budget", false);
+            p.avoid = pj.optString("avoid", "");
+            p.batch = pj.optBoolean("batch", true);
+            p.variety = Math.max(0, Math.min(2, pj.optInt("variety", 1)));
+            s.mealPrefs = p;
+        }
+        JSONObject j = o.optJSONObject("mealPlan");
+        if (j == null) return;
+        MealPlan plan = new MealPlan();
+        plan.start = j.getInt("start");
+        plan.days = Math.max(1, Math.min(14, j.optInt("days", 7)));
+        plan.seed = j.optLong("seed", 0);
+        plan.created = j.optLong("created", 0);
+        plan.kcal = j.optInt("kcal", 0);
+        plan.protein = j.optInt("protein", 0);
+        plan.carbs = j.optInt("carbs", 0);
+        plan.fat = j.optInt("fat", 0);
+        JSONArray meals = j.optJSONArray("meals");
+        if (meals != null) {
+            for (int i = 0; i < meals.length(); i++) {
+                JSONObject mj = meals.getJSONObject(i);
+                MealPlan.Meal m = new MealPlan.Meal();
+                m.day = mj.getInt("day");
+                m.slot = mj.optString("slot", MealPlan.LUNCH);
+                m.recipeId = mj.has("recipe") ? mj.getString("recipe") : null;
+                m.name = mj.optString("name", "Repas");
+                m.targetKcal = finite(mj.optDouble("tk", 0));
+                m.targetProtein = finite(mj.optDouble("tp", 0));
+                m.targetFat = finite(mj.optDouble("tf", 0));
+                m.eaten = mj.optBoolean("eaten", false);
+                JSONArray items = mj.optJSONArray("items");
+                if (items != null) {
+                    for (int k = 0; k < items.length(); k++) {
+                        JSONObject ij = items.getJSONObject(k);
+                        double g = finite(ij.optDouble("g", 0));
+                        if (g > 0) m.items.add(new MealPlan.Item(ij.optString("food", ""), ij.optString("name", "Aliment"), g));
+                    }
+                }
+                JSONArray entries = mj.optJSONArray("entries");
+                if (entries != null) for (int k = 0; k < entries.length(); k++) m.entries.add(entries.getLong(k));
+                plan.meals.add(m);
+            }
+        }
+        JSONArray checked = j.optJSONArray("checked");
+        if (checked != null) for (int i = 0; i < checked.length(); i++) plan.checked.add(checked.getString(i));
+        JSONArray extras = j.optJSONArray("extras");
+        if (extras != null) {
+            for (int i = 0; i < extras.length(); i++) {
+                JSONObject xj = extras.getJSONObject(i);
+                MealPlan.Extra x = new MealPlan.Extra();
+                x.name = xj.optString("name", "Article");
+                x.checked = xj.optBoolean("checked", false);
+                plan.extras.add(x);
+            }
+        }
+        s.mealPlan = plan;
     }
 
     private static void readBody(Store s, JSONObject o) throws JSONException {
@@ -346,6 +492,7 @@ final class JsonCodec {
                 s.nextId = Math.max(s.nextId, m.id + 1);
             }
         }
+        readMeals(s, o);
     }
 
     private static JSONObject wod(Wod w) throws JSONException {

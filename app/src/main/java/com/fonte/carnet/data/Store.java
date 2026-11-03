@@ -17,6 +17,9 @@ import com.fonte.carnet.core.Profile;
 import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Fmt;
 import com.fonte.carnet.core.Library;
+import com.fonte.carnet.core.MealPlan;
+import com.fonte.carnet.core.MealPlanner;
+import com.fonte.carnet.core.MealPrefs;
 import com.fonte.carnet.core.Program;
 import com.fonte.carnet.core.RenfoLog;
 import com.fonte.carnet.core.Routine;
@@ -78,6 +81,9 @@ public final class Store {
     public final List<BodyLog.Weight> weights = new ArrayList<>();
     /** Mensurations, de la plus récente à la plus ancienne. */
     public final List<BodyLog.Measures> measures = new ArrayList<>();
+    /** Mes repas (v4) : réglages et plan de la semaine. */
+    public MealPrefs mealPrefs = new MealPrefs();
+    public MealPlan mealPlan;
     public Session current;
     public Program program;
     public Settings settings = new Settings();
@@ -109,6 +115,8 @@ public final class Store {
         activities.clear();
         weights.clear();
         measures.clear();
+        mealPrefs = new MealPrefs();
+        mealPlan = null;
         current = null;
         program = null;
         settings = new Settings();
@@ -452,6 +460,11 @@ public final class Store {
 
     public void deleteFood(FoodEntry e) {
         foodEntries.remove(e);
+        if (mealPlan != null) {
+            for (MealPlan.Meal m : mealPlan.meals) {
+                if (m.entries.remove(Long.valueOf(e.id)) && m.entries.isEmpty()) m.eaten = false;
+            }
+        }
         if (e.photo != null) {
             boolean shared = false;
             for (FoodEntry o : foodEntries) if (e.photo.equals(o.photo)) shared = true;
@@ -532,6 +545,108 @@ public final class Store {
 
     public int waterTarget(int day) {
         return Nutrition.water(profile, weightForCalc(), trained(day));
+    }
+
+    // ---------------------------------------------------------------- mes repas
+
+    /** Réglages des repas ; les jours d'entraînement sont devinés d'après l'historique la première fois. */
+    public MealPrefs mealPrefs() {
+        if (mealPrefs.trainingMask < 0) {
+            int today = Days.today();
+            boolean[] trained = new boolean[28];
+            for (int i = 0; i < trained.length; i++) trained[i] = trained(Days.add(today, -i));
+            mealPrefs.trainingMask = MealPlanner.detectTraining(trained, today);
+        }
+        return mealPrefs;
+    }
+
+    public MealPlanner.Targets mealTargets() {
+        Nutrition.Macros m = targetMacros();
+        return new MealPlanner.Targets(m.kcal, m.protein, m.carbs, m.fat);
+    }
+
+    public MealPlan generateMealPlan(MealPrefs prefs, int start) {
+        mealPrefs = prefs;
+        mealPlan = MealPlanner.generate(prefs, mealTargets(), start, System.nanoTime());
+        mealPlan.created = System.currentTimeMillis();
+        save();
+        return mealPlan;
+    }
+
+    /** Coche un repas du plan : il est ajouté au journal (et retiré si on décoche). */
+    public void setMealEaten(MealPlan.Meal m, boolean eaten) {
+        if (eaten == m.eaten) return;
+        if (eaten) {
+            Nutrition.Totals t = m.totals();
+            FoodEntry e = new FoodEntry();
+            e.id = newId();
+            e.day = m.day;
+            e.time = Days.start(m.day) + MealPlan.slotHour(m.slot) * 3_600_000L;
+            e.meal = MealPlan.journalMeal(m.slot);
+            e.name = m.name;
+            e.grams = m.grams();
+            e.kcal = t.kcal;
+            e.protein = t.protein;
+            e.carbs = t.carbs;
+            e.fat = t.fat;
+            foodEntries.add(e);
+            m.entries.clear();
+            m.entries.add(e.id);
+            m.eaten = true;
+        } else {
+            for (Long id : m.entries) {
+                for (int i = foodEntries.size() - 1; i >= 0; i--) {
+                    if (foodEntries.get(i).id == id) foodEntries.remove(i);
+                }
+            }
+            m.entries.clear();
+            m.eaten = false;
+        }
+        save();
+    }
+
+    /** Remplace un repas du plan par un autre (le journal suit si le repas était coché). */
+    public void replaceMeal(MealPlan.Meal old, MealPlan.Meal fresh) {
+        if (mealPlan == null) return;
+        int i = mealPlan.meals.indexOf(old);
+        if (i < 0) return;
+        boolean wasEaten = old.eaten;
+        if (wasEaten) setMealEaten(old, false);
+        mealPlan.meals.set(i, fresh);
+        if (wasEaten) setMealEaten(fresh, true);
+        save();
+    }
+
+    public void toggleShop(String key) {
+        if (mealPlan == null) return;
+        if (key.startsWith("extra:")) {
+            int i = Integer.parseInt(key.substring(6));
+            if (i >= 0 && i < mealPlan.extras.size()) mealPlan.extras.get(i).checked = !mealPlan.extras.get(i).checked;
+        } else if (!mealPlan.checked.remove(key)) {
+            mealPlan.checked.add(key);
+        }
+        save();
+    }
+
+    public void addShopExtra(String name) {
+        if (mealPlan == null) return;
+        MealPlan.Extra x = new MealPlan.Extra();
+        x.name = name;
+        mealPlan.extras.add(x);
+        save();
+    }
+
+    public void deleteShopExtra(int index) {
+        if (mealPlan == null || index < 0 || index >= mealPlan.extras.size()) return;
+        mealPlan.extras.remove(index);
+        save();
+    }
+
+    public void uncheckShopping() {
+        if (mealPlan == null) return;
+        mealPlan.checked.clear();
+        for (MealPlan.Extra x : mealPlan.extras) x.checked = false;
+        save();
     }
 
     /**

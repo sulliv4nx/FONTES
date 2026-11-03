@@ -1,4 +1,4 @@
-# Fonte 3.0 — sport, nutrition et suivi corporel pour Android
+# Fonte 4.0 — sport, nutrition et suivi corporel pour Android
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
@@ -16,6 +16,13 @@ Le récapitulatif du jour : calories restantes et macros, hydratation, calories 
 - **Étiquette** : la photo du tableau nutritionnel est lue sur le téléphone, et les valeurs sont pré-remplies.
 - **Photo du repas** : jointe au journal. Elle ne calcule pas les calories : il faudrait un service d'IA en ligne.
 - **Calories dépensées** : estimées (MET) à partir des séances, WOD et circuits, plus les activités ajoutées (course, vélo…) ou les calories de ta montre.
+
+### Mes repas (Nutrition › Mes repas)
+- **Plan de 7 jours** : petit-déjeuner, collations, déjeuner, dîner et shaker, choisis parmi une cinquantaine de recettes. Chaque recette est ajustée (protéines, féculents, matières grasses) pour viser tes calories, protéines et lipides du jour.
+- **Réglages** : 3, 4 ou 5 prises par jour, shaker les jours d'entraînement (repérés dans ton historique) ou tous les jours, sans porc, végétarien, sans lactose, poisson 2 fois par semaine, cuisine créole, petit budget, aliments à éviter, cuisine en lot (un plat pour 2 jours), variété.
+- **Chaque plat** : quantités en grammes (poids cuit et équivalent cru ou sec), macros, étapes de préparation. « Mangé » l'ajoute au journal du jour.
+- **Remplacer un plat** : 3 propositions aux mêmes calories et protéines (±10 %), ou toutes les recettes au choix.
+- **Liste de courses** : calculée sur la semaine, rangée par rayon, en poids cru ou sec, à cocher, à compléter, à partager ou copier.
 
 ### Corps
 Poids (courbe, variations sur 7 et 30 jours, IMC), mensurations (taille, hanches, poitrine, épaules, bras, cuisse, mollet, cou, masse grasse) avec historique, composition corporelle (masse grasse mesurée ou estimée par la méthode de l'US Navy).
@@ -53,7 +60,8 @@ Avec Android Studio : **Open** sur le dossier du projet, puis **▶ Run** avec l
 ```
 app/src/main/java/com/fonte/carnet/
 ├── core/   logique pure, testée : modèle, programmes, chrono (Clock), WOD, circuits,
-│           séances types, générateur par muscle, lecture de programmation (CoachParser)
+│           séances types, générateur par muscle, lecture de programmation (CoachParser),
+│           recettes, plan de repas (MealPlanner) et liste de courses
 ├── data/   stockage local JSON (écriture atomique) + export/import
 └── ui/     écrans (activité unique, interface construite en code)
 app/src/test/   tests unitaires (./gradlew test)

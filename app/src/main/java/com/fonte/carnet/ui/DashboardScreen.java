@@ -58,6 +58,8 @@ public class DashboardScreen extends Screen {
         if (running != null) c.addView(running);
 
         c.addView(nutritionCard(day));
+        View meal = nextMealCard(day);
+        if (meal != null) c.addView(meal);
         c.addView(Ui.grid(a, 2, waterCard(day), burnCard(day)));
         c.addView(trainingCard());
         c.addView(bodyCard());
@@ -117,6 +119,27 @@ public class DashboardScreen extends Screen {
         card.addView(sum);
         card.addView(Ui.button(a, "Ajouter un repas", Ui.SECONDARY,
                 v -> a.show(new FoodAddScreen(FoodEntry.mealFor(System.currentTimeMillis()), day))));
+        return card;
+    }
+
+    /** Prochain repas prévu dans « Mes repas », s'il y a un plan pour aujourd'hui. */
+    private View nextMealCard(int day) {
+        com.fonte.carnet.core.MealPlan.Meal m = MealPlanScreen.nextMeal(st.mealPlan, day);
+        if (m == null) return null;
+        LinearLayout card = Ui.clickCard(a, v -> a.show(new MealPlanScreen(day)));
+        LinearLayout row = Ui.hbox(a);
+        row.addView(Ui.iconBadge(a, Icon.SPARK, Ui.ACCENT));
+        LinearLayout txt = Ui.vbox(a);
+        txt.setPadding(Ui.dp(12), 0, Ui.dp(8), 0);
+        txt.addView(Ui.text(a, "À manger · " + com.fonte.carnet.core.MealPlan.slotLabel(m.slot), 12, Ui.MUTED));
+        TextView n = Ui.medium(a, m.name, 15, Ui.TEXT);
+        n.setMaxLines(2);
+        txt.addView(n);
+        row.addView(txt, Ui.weight(1));
+        TextView k = Ui.medium(a, Fmt.kg(Math.round(m.totals().kcal)) + " kcal", 14, Ui.TEXT);
+        Ui.tabular(k);
+        row.addView(k);
+        card.addView(row);
         return card;
     }
 

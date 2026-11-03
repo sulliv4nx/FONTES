@@ -261,6 +261,11 @@ public class MainActivity extends Activity {
         return stack.isEmpty() ? null : stack.get(stack.size() - 1);
     }
 
+    /** Écran affiché. */
+    public Screen currentScreen() {
+        return top();
+    }
+
     // ---------------------------------------------------------------- navigation
 
     public void goTab(int t) {

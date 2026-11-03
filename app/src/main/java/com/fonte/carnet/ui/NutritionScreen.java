@@ -47,6 +47,7 @@ public class NutritionScreen extends Screen {
             c.addView(card);
         }
         c.addView(summaryCard());
+        c.addView(mealsCard());
         c.addView(waterCard());
         c.addView(burnCard());
         for (String meal : FoodEntry.MEALS) c.addView(mealCard(meal));
@@ -100,6 +101,45 @@ public class NutritionScreen extends Screen {
         LinearLayout total = Ui.row(a, left >= 0 ? "Reste" : "Dépassement", Fmt.kg(Math.abs(left)) + " kcal");
         ((TextView) total.getChildAt(1)).setTextColor(left >= 0 ? Ui.ACCENT : Ui.WARN);
         card.addView(total);
+        return card;
+    }
+
+    /** Mes repas : ce qui est prévu ce jour-là, ou l'invitation à créer un plan. */
+    private View mealsCard() {
+        com.fonte.carnet.core.MealPlan plan = st.mealPlan;
+        LinearLayout card = Ui.clickCard(a, v -> a.show(new MealPlanScreen(day)));
+        card.addView(Ui.cardHeader(a, Icon.SPARK, Ui.ACCENT, "Mes repas", plan == null ? null : "Courses",
+                v -> a.show(new ShoppingScreen())));
+        if (plan == null || !plan.covers(day)) {
+            card.addView(Ui.text(a, plan == null
+                    ? "Fonte te propose quoi manger sur 7 jours (plats, collations, shakers), ajusté à ton objectif, avec la liste de courses."
+                    : "Aucun plan pour ce jour.", 13, Ui.MUTED));
+            card.addView(Ui.button(a, plan == null ? "Créer mon plan" : "Voir mes repas", Ui.SECONDARY,
+                    v -> a.show(plan == null ? new MealSetupScreen() : new MealPlanScreen())));
+            return card;
+        }
+        java.util.List<com.fonte.carnet.core.MealPlan.Meal> meals = plan.mealsOf(day);
+        int eaten = 0;
+        for (com.fonte.carnet.core.MealPlan.Meal m : meals) if (m.eaten) eaten++;
+        card.addView(Ui.text(a, meals.size() + " repas prévus · " + Fmt.kg(Math.round(plan.totals(day).kcal)) + " kcal · "
+                + eaten + " coché" + (eaten > 1 ? "s" : ""), 13, Ui.MUTED));
+        com.fonte.carnet.core.MealPlan.Meal next = MealPlanScreen.nextMeal(plan, day);
+        if (next != null) {
+            LinearLayout row = Ui.hbox(a);
+            row.setPadding(0, Ui.dp(10), 0, 0);
+            LinearLayout txt = Ui.vbox(a);
+            txt.addView(Ui.text(a, (day == Days.today() ? "À suivre · " : "") + com.fonte.carnet.core.MealPlan.slotLabel(next.slot), 12, Ui.FAINT));
+            txt.addView(Ui.medium(a, next.name, 15, Ui.TEXT));
+            row.addView(txt, Ui.weight(1));
+            TextView k = Ui.medium(a, Fmt.kg(Math.round(next.totals().kcal)) + " kcal", 14, Ui.TEXT);
+            Ui.tabular(k);
+            row.addView(k);
+            card.addView(row);
+        } else {
+            TextView done = Ui.text(a, "Tous les repas du jour sont cochés.", 13, Ui.OK);
+            done.setPadding(0, Ui.dp(8), 0, 0);
+            card.addView(done);
+        }
         return card;
     }
 
