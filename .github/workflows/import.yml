@@ -2,8 +2,7 @@ name: Import Fonte source files
 on:
   push:
     paths:
-      - 'fonte-import.txt'
-      - '.github/workflows/import.yml'
+      - 'fonte-import-part-03.txt'
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,11 +17,10 @@ jobs:
       - name: Extract source and generate wrapper
         shell: bash
         run: |
-          test -s fonte-import.txt
-          base64 --decode fonte-import.txt | tar -xJ
+          cat fonte-import-part-{00,01,02,03}.txt | base64 --decode | tar -xJ
           gradle wrapper --gradle-version 8.14.3
           chmod +x gradlew
-          rm fonte-import.txt .github/workflows/import.yml
+          rm fonte-import-part-{00,01,02,03}.txt .github/workflows/import.yml
       - name: Commit imported sources
         shell: bash
         run: |
