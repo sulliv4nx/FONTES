@@ -1,14 +1,11 @@
-name: Importer Fonte Android et compiler l'APK
+name: Compiler Fonte Android
 on:
   push:
-    paths:
-      - 'Fonte-projet-android.zip'
-      - '.github/workflows/import.yml'
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
-  import-and-build:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,27 +14,28 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Extraire le projet Android
+      - name: Importer le ZIP si présent
         shell: bash
         run: |
-          test -s Fonte-projet-android.zip
-          unzip -q Fonte-projet-android.zip -d /tmp/fonte-import
-          test -f /tmp/fonte-import/Fonte/settings.gradle.kts
-          cp -a /tmp/fonte-import/Fonte/. .
-          test -f app/build.gradle.kts
-          chmod +x gradlew
-          rm -f Fonte-projet-android.zip .github/workflows/import.yml
-      - name: Enregistrer les fichiers du projet
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Importer le projet Android Fonte depuis l'archive"
-          git push origin HEAD:main
+          if [ -f Fonte-projet-android.zip ]; then
+            unzip -q Fonte-projet-android.zip -d /tmp/fonte-import
+            test -f /tmp/fonte-import/Fonte/settings.gradle.kts
+            cp -a /tmp/fonte-import/Fonte/. .
+            test -f app/build.gradle.kts
+            rm -f Fonte-projet-android.zip .github/workflows/build.yml
+            chmod +x gradlew
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Importer le code source Android Fonte"
+            git push origin HEAD:main
+          fi
       - name: Tests et compilation de l'APK
         shell: bash
-        run: ./gradlew test assembleDebug
+        run: |
+          test -f app/build.gradle.kts
+          chmod +x gradlew
+          ./gradlew test assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: fonte-apk
