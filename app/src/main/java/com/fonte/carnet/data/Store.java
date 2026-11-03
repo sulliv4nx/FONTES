@@ -11,10 +11,16 @@ import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Fmt;
 import com.fonte.carnet.core.Library;
 import com.fonte.carnet.core.Program;
+import com.fonte.carnet.core.RenfoLog;
+import com.fonte.carnet.core.Routine;
 import com.fonte.carnet.core.Session;
+import com.fonte.carnet.core.SetEntry;
 import com.fonte.carnet.core.Settings;
 import com.fonte.carnet.core.Stats;
 import com.fonte.carnet.core.Template;
+import com.fonte.carnet.core.Wod;
+import com.fonte.carnet.core.WodResult;
+import com.fonte.carnet.core.Wods;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,6 +55,12 @@ public final class Store {
     /** Séances terminées, de la plus récente à la plus ancienne. */
     public final List<Session> sessions = new ArrayList<>();
     public final List<Template> templates = new ArrayList<>();
+    /** WOD créés par l'utilisateur. */
+    public final List<Wod> customWods = new ArrayList<>();
+    /** Scores de WOD, du plus récent au plus ancien. */
+    public final List<WodResult> wodResults = new ArrayList<>();
+    /** Circuits de renfo terminés, du plus récent au plus ancien. */
+    public final List<RenfoLog> renfoLogs = new ArrayList<>();
     public Session current;
     public Program program;
     public Settings settings = new Settings();
@@ -70,6 +82,9 @@ public final class Store {
         exercises.addAll(Library.defaults());
         sessions.clear();
         templates.clear();
+        customWods.clear();
+        wodResults.clear();
+        renfoLogs.clear();
         current = null;
         program = null;
         settings = new Settings();
@@ -211,7 +226,7 @@ public final class Store {
         s.id = newId();
         s.name = name;
         s.start = System.currentTimeMillis();
-        for (ExerciseEntry e : plan) s.exercises.add(e.copy(false));
+        for (ExerciseEntry e : plan) s.exercises.add(prefill(e.copy(false), s.id));
         s.programKey = programKey;
         s.programDay = programDay;
         current = s;
@@ -264,6 +279,104 @@ public final class Store {
 
     private void sortSessions() {
         Collections.sort(sessions, (a, b) -> Long.compare(b.start, a.start));
+        Collections.sort(wodResults, (a, b) -> Long.compare(b.date, a.date));
+        Collections.sort(renfoLogs, (a, b) -> Long.compare(b.date, a.date));
+    }
+
+    /**
+     * Séries sans charge (séance type, proposition, programmation sans kg) : on reprend la charge
+     * de la dernière fois pour la même série, pour n'avoir qu'à ajuster.
+     */
+    private ExerciseEntry prefill(ExerciseEntry e, long sessionId) {
+        boolean empty = true;
+        for (SetEntry s : e.sets) if (s.weight > 0) empty = false;
+        if (!empty) return e;
+        List<SetEntry> last = Stats.lastPerformance(e.exerciseId, sessions, sessionId);
+        if (last == null || last.isEmpty()) return e;
+        for (int i = 0; i < e.sets.size(); i++) {
+            SetEntry ref = last.get(Math.min(i, last.size() - 1));
+            if (ref.weight > 0) e.sets.get(i).weight = ref.weight;
+        }
+        return e;
+    }
+
+    // ---------------------------------------------------------------- CrossFit et renfo
+
+    public Wod wod(String id) {
+        if (id == null) return null;
+        Wod w = Wods.find(id);
+        if (w != null) return w;
+        for (Wod c : customWods) if (id.equals(c.id)) return c;
+        return null;
+    }
+
+    public Wod saveCustomWod(Wod w) {
+        w.kind = Wod.CUSTOM;
+        if (w.id == null || w.id.isEmpty()) {
+            w.id = "perso_" + newId();
+            customWods.add(w);
+        } else {
+            boolean replaced = false;
+            for (int i = 0; i < customWods.size(); i++) {
+                if (customWods.get(i).id.equals(w.id)) {
+                    customWods.set(i, w);
+                    replaced = true;
+                }
+            }
+            if (!replaced) customWods.add(w);
+        }
+        for (WodResult r : wodResults) if (w.id.equals(r.wodId)) r.wodName = w.name;
+        save();
+        return w;
+    }
+
+    public void deleteCustomWod(Wod w) {
+        customWods.remove(w);
+        save();
+    }
+
+    public List<WodResult> results(String wodId) {
+        List<WodResult> out = new ArrayList<>();
+        for (WodResult r : wodResults) if (r.wodId.equals(wodId)) out.add(r);
+        return out;
+    }
+
+    /** Enregistre un score. Renvoie true si c'est le meilleur score de ce WOD (hors première fois). */
+    public boolean addWodResult(WodResult r) {
+        WodResult previousBest = WodResult.best(wodResults, r.wodId, r.type);
+        r.id = newId();
+        wodResults.add(r);
+        sortSessions();
+        save();
+        return previousBest != null && WodResult.better(r, previousBest);
+    }
+
+    public void deleteWodResult(WodResult r) {
+        wodResults.remove(r);
+        save();
+    }
+
+    public WodResult wodResult(long id) {
+        for (WodResult r : wodResults) if (r.id == id) return r;
+        return null;
+    }
+
+    public RenfoLog addRenfo(Routine r, int seconds) {
+        RenfoLog l = new RenfoLog();
+        l.id = newId();
+        l.routineId = r.id;
+        l.name = r.name;
+        l.date = System.currentTimeMillis();
+        l.seconds = seconds;
+        renfoLogs.add(l);
+        sortSessions();
+        save();
+        return l;
+    }
+
+    public void deleteRenfo(RenfoLog l) {
+        renfoLogs.remove(l);
+        save();
     }
 
     // ---------------------------------------------------------------- modèles et programmes

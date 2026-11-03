@@ -20,5 +20,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Fichier temporaire où l'appareil photo enregistre la photo de la programmation. -->
+        <provider
+            android:name=".ui.PhotoProvider"
+            android:authorities="com.fonte.carnet.photos"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 </manifest>

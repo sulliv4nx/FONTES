@@ -66,6 +66,123 @@ public final class Library {
         l.add(new Exercise(35, "Pierre d'Atlas", STRONGMAN, false));
         l.add(new Exercise(36, "Soulevé de terre trap bar", STRONGMAN, false));
         l.add(new Exercise(37, "Axle press", STRONGMAN, false));
+        // v2 : exercices d'isolation pour les séances par muscle.
+        l.add(new Exercise(38, "Écarté couché haltères", PUSH, false));
+        l.add(new Exercise(39, "Écarté à la poulie", PUSH, false));
+        l.add(new Exercise(40, "Développé incliné haltères", PUSH, false));
+        l.add(new Exercise(41, "Développé épaules haltères", PUSH, false));
+        l.add(new Exercise(42, "Oiseau (deltoïdes arrière)", PULL, false));
+        l.add(new Exercise(43, "Shrugs", PULL, false));
+        l.add(new Exercise(44, "Pull-over", PULL, false));
+        l.add(new Exercise(45, "Tirage horizontal à la poulie", PULL, false));
+        l.add(new Exercise(46, "Curl marteau", ARMS, false));
+        l.add(new Exercise(47, "Curl pupitre", ARMS, false));
+        l.add(new Exercise(48, "Barre au front", ARMS, false));
+        l.add(new Exercise(49, "Extension triceps à la poulie", ARMS, false));
+        l.add(new Exercise(50, "Leg extension", LEGS, false));
+        l.add(new Exercise(51, "Leg curl", LEGS, false));
+        l.add(new Exercise(52, "Mollets debout", LEGS, false));
+        l.add(new Exercise(53, "Mollets assis", LEGS, false));
+        l.add(new Exercise(54, "Squat bulgare", LEGS, false));
+        l.add(new Exercise(55, "Goblet squat", LEGS, false));
+        l.add(new Exercise(56, "Good morning", LEGS, false));
+        l.add(new Exercise(57, "Crunch", ARMS, false));
+        l.add(new Exercise(58, "Roue abdominale", ARMS, false));
+        l.add(new Exercise(59, "Abduction de hanche", LEGS, false));
+        l.add(new Exercise(60, "Développé couché prise serrée", PUSH, false));
         return l;
+    }
+
+    // ---------------------------------------------------------------- muscles
+
+    public static final String PECS = "Pectoraux";
+    public static final String BACK = "Dos";
+    public static final String SHOULDERS = "Épaules";
+    public static final String BICEPS = "Biceps";
+    public static final String TRICEPS = "Triceps";
+    public static final String QUADS = "Quadriceps";
+    public static final String HAMS = "Ischio-jambiers";
+    public static final String GLUTES = "Fessiers";
+    public static final String CALVES = "Mollets";
+    public static final String ABS = "Abdos";
+
+    public static final String[] MUSCLES = {PECS, BACK, SHOULDERS, BICEPS, TRICEPS, QUADS, HAMS, GLUTES, CALVES, ABS};
+
+    /** Exercice ciblé : muscles (le premier est le principal) et polyarticulaire ou non. */
+    public static final class Target {
+        public final long id;
+        public final boolean compound;
+        public final String[] muscles;
+
+        Target(long id, boolean compound, String... muscles) {
+            this.id = id;
+            this.compound = compound;
+            this.muscles = muscles;
+        }
+
+        public String primary() {
+            return muscles[0];
+        }
+
+        public boolean works(String muscle) {
+            for (String m : muscles) if (m.equals(muscle)) return true;
+            return false;
+        }
+    }
+
+    /** Exercices de musculation utilisables pour les propositions de séance. */
+    public static List<Target> targets() {
+        List<Target> t = new ArrayList<>();
+        t.add(new Target(BENCH, true, PECS, TRICEPS, SHOULDERS));
+        t.add(new Target(5, true, PECS, SHOULDERS));
+        t.add(new Target(6, true, PECS, TRICEPS));
+        t.add(new Target(40, true, PECS, SHOULDERS));
+        t.add(new Target(7, true, TRICEPS, PECS));
+        t.add(new Target(8, true, PECS, TRICEPS));
+        t.add(new Target(38, false, PECS));
+        t.add(new Target(39, false, PECS));
+        t.add(new Target(OHP, true, SHOULDERS, TRICEPS));
+        t.add(new Target(41, true, SHOULDERS, TRICEPS));
+        t.add(new Target(10, false, SHOULDERS));
+        t.add(new Target(42, false, SHOULDERS, BACK));
+        t.add(new Target(15, false, SHOULDERS, BACK));
+        t.add(new Target(11, true, BACK, BICEPS));
+        t.add(new Target(12, true, BACK, BICEPS));
+        t.add(new Target(13, true, BACK, BICEPS));
+        t.add(new Target(14, true, BACK, BICEPS));
+        t.add(new Target(45, true, BACK, BICEPS));
+        t.add(new Target(44, false, BACK, PECS));
+        t.add(new Target(43, false, BACK));
+        t.add(new Target(21, false, BICEPS));
+        t.add(new Target(46, false, BICEPS));
+        t.add(new Target(47, false, BICEPS));
+        t.add(new Target(60, true, TRICEPS, PECS));
+        t.add(new Target(48, false, TRICEPS));
+        t.add(new Target(49, false, TRICEPS));
+        t.add(new Target(22, false, TRICEPS));
+        t.add(new Target(SQUAT, true, QUADS, GLUTES));
+        t.add(new Target(16, true, QUADS, GLUTES));
+        t.add(new Target(19, true, QUADS, GLUTES));
+        t.add(new Target(54, true, QUADS, GLUTES));
+        t.add(new Target(55, true, QUADS, GLUTES));
+        t.add(new Target(18, true, QUADS, GLUTES));
+        t.add(new Target(50, false, QUADS));
+        t.add(new Target(DEADLIFT, true, HAMS, GLUTES, BACK));
+        t.add(new Target(17, true, HAMS, GLUTES));
+        t.add(new Target(56, true, HAMS, BACK));
+        t.add(new Target(51, false, HAMS));
+        t.add(new Target(20, true, GLUTES, HAMS));
+        t.add(new Target(59, false, GLUTES));
+        t.add(new Target(52, false, CALVES));
+        t.add(new Target(53, false, CALVES));
+        t.add(new Target(23, false, ABS));
+        t.add(new Target(57, false, ABS));
+        t.add(new Target(58, false, ABS));
+        return t;
+    }
+
+    /** Exercices au poids du corps (pas de charge à saisir par défaut). */
+    public static boolean bodyweight(long id) {
+        return id == 7 || id == 8 || id == 11 || id == 23 || id == 57 || id == 58;
     }
 }

@@ -31,9 +31,11 @@ public class RecordsScreen extends Screen {
         c.addView(linkCard("Bibliothèque d'exercices", Fmt.plural(st.exercises.size(), "exercice") + " · ajoute les tiens",
                 v -> a.show(new ExercisesScreen())));
 
+        addWodRecords(c);
+
         Map<Long, Stats.Record> recs = Stats.records(st.sessions);
         if (recs.isEmpty()) {
-            TextView t = Ui.text(a, "Tes records apparaîtront ici après ta première séance.", 15, Ui.MUTED);
+            TextView t = Ui.text(a, "Tes records de musculation apparaîtront ici après ta première séance.", 15, Ui.MUTED);
             t.setPadding(Ui.dp(4), Ui.dp(16), Ui.dp(4), 0);
             c.addView(t);
             return Ui.page(a, c);
@@ -57,6 +59,36 @@ public class RecordsScreen extends Screen {
             }
         }
         return Ui.page(a, c);
+    }
+
+    /** Meilleur score de chaque WOD déjà fait. */
+    private void addWodRecords(LinearLayout c) {
+        java.util.LinkedHashMap<String, com.fonte.carnet.core.WodResult> best = new java.util.LinkedHashMap<>();
+        for (com.fonte.carnet.core.WodResult r : st.wodResults) {
+            if (best.containsKey(r.wodId)) continue;
+            com.fonte.carnet.core.Wod w = st.wod(r.wodId);
+            String type = w != null ? w.scoreType() : r.type;
+            com.fonte.carnet.core.WodResult b = com.fonte.carnet.core.WodResult.best(st.wodResults, r.wodId, type);
+            if (b != null) best.put(r.wodId, b);
+        }
+        if (best.isEmpty()) return;
+        c.addView(Ui.section(a, "WOD"));
+        for (com.fonte.carnet.core.WodResult b : best.values()) {
+            LinearLayout card = Ui.clickCard(a, v -> {
+                if (st.wod(b.wodId) != null) a.show(new WodScreen(b.wodId));
+            });
+            LinearLayout line = Ui.hbox(a);
+            LinearLayout txt = Ui.vbox(a);
+            txt.addView(Ui.medium(a, b.wodName, 16, Ui.TEXT));
+            txt.addView(Ui.text(a, Fmt.shortDay(b.date) + (b.rx ? " · RX" : " · adapté"), 12, Ui.MUTED));
+            line.addView(txt, Ui.weight(1));
+            TextView sc = Ui.medium(a, b.score(), 16, Ui.ACCENT);
+            Ui.tabular(sc);
+            line.addView(sc);
+            card.addView(line);
+            c.addView(card);
+        }
+        c.addView(Ui.section(a, "Musculation"));
     }
 
     private View linkCard(String title, String sub, View.OnClickListener l) {

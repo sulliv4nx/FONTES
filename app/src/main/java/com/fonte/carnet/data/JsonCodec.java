@@ -4,10 +4,13 @@ import com.fonte.carnet.core.Exercise;
 import com.fonte.carnet.core.ExerciseEntry;
 import com.fonte.carnet.core.Library;
 import com.fonte.carnet.core.Program;
+import com.fonte.carnet.core.RenfoLog;
 import com.fonte.carnet.core.Session;
 import com.fonte.carnet.core.SetEntry;
 import com.fonte.carnet.core.Settings;
 import com.fonte.carnet.core.Template;
+import com.fonte.carnet.core.Wod;
+import com.fonte.carnet.core.WodResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,6 +36,8 @@ final class JsonCodec {
         st.put("restSeconds", s.settings.restSeconds);
         st.put("rounding", finite(s.settings.rounding));
         st.put("vibrate", s.settings.vibrate);
+        st.put("sounds", s.settings.sounds);
+        st.put("prepSeconds", s.settings.prepSeconds);
         o.put("settings", st);
 
         JSONArray ex = new JSONArray();
@@ -80,7 +85,78 @@ final class JsonCodec {
             j.put("days", days);
             o.put("program", j);
         }
+
+        JSONArray wods = new JSONArray();
+        for (Wod w : s.customWods) wods.put(wod(w));
+        o.put("wods", wods);
+
+        JSONArray results = new JSONArray();
+        for (WodResult r : s.wodResults) {
+            JSONObject j = new JSONObject();
+            j.put("id", r.id);
+            j.put("wodId", r.wodId);
+            j.put("wodName", r.wodName);
+            j.put("date", r.date);
+            j.put("type", r.type);
+            j.put("seconds", r.seconds);
+            j.put("rounds", r.rounds);
+            j.put("reps", r.reps);
+            j.put("rx", r.rx);
+            if (r.capped) j.put("capped", true);
+            if (r.note != null && !r.note.isEmpty()) j.put("note", r.note);
+            results.put(j);
+        }
+        o.put("wodResults", results);
+
+        JSONArray renfo = new JSONArray();
+        for (RenfoLog l : s.renfoLogs) {
+            JSONObject j = new JSONObject();
+            j.put("id", l.id);
+            j.put("routineId", l.routineId);
+            j.put("name", l.name);
+            j.put("date", l.date);
+            j.put("seconds", l.seconds);
+            renfo.put(j);
+        }
+        o.put("renfo", renfo);
         return o;
+    }
+
+    private static JSONObject wod(Wod w) throws JSONException {
+        JSONObject j = new JSONObject();
+        j.put("id", w.id);
+        j.put("name", w.name);
+        j.put("format", w.format);
+        j.put("minutes", w.minutes);
+        j.put("every", w.every);
+        j.put("rounds", w.rounds);
+        if (w.alternate) j.put("alternate", true);
+        if (w.note != null && !w.note.isEmpty()) j.put("note", w.note);
+        JSONArray lines = new JSONArray();
+        for (String l : w.lines) lines.put(l);
+        j.put("lines", lines);
+        JSONArray tags = new JSONArray();
+        for (String t : w.tags) tags.put(t);
+        j.put("tags", tags);
+        return j;
+    }
+
+    private static Wod wod(JSONObject j) throws JSONException {
+        Wod w = new Wod();
+        w.id = j.getString("id");
+        w.kind = Wod.CUSTOM;
+        w.name = j.optString("name", "Mon WOD");
+        w.format = j.optString("format", Wod.FOR_TIME);
+        w.minutes = Math.max(0, j.optInt("minutes", 0));
+        w.every = Math.max(10, j.optInt("every", 60));
+        w.rounds = Math.max(0, j.optInt("rounds", 0));
+        w.alternate = j.optBoolean("alternate", false);
+        w.note = j.has("note") ? j.getString("note") : null;
+        JSONArray lines = j.optJSONArray("lines");
+        if (lines != null) for (int i = 0; i < lines.length(); i++) w.lines.add(lines.getString(i));
+        JSONArray tags = j.optJSONArray("tags");
+        if (tags != null) for (int i = 0; i < tags.length(); i++) w.tags.add(tags.getString(i));
+        return w;
     }
 
     static void read(Store s, JSONObject o) throws JSONException {
@@ -97,6 +173,8 @@ final class JsonCodec {
             set.rounding = Math.max(0, st.optDouble("rounding", set.rounding));
             if (Double.isNaN(set.rounding)) set.rounding = 2.5;
             set.vibrate = st.optBoolean("vibrate", true);
+            set.sounds = st.optBoolean("sounds", true);
+            set.prepSeconds = Math.max(0, Math.min(60, st.optInt("prepSeconds", set.prepSeconds)));
             s.settings = set;
         }
 
@@ -158,6 +236,45 @@ final class JsonCodec {
                 }
             }
             if (!p.days.isEmpty()) s.program = p;
+        }
+
+        JSONArray wods = o.optJSONArray("wods");
+        if (wods != null) for (int i = 0; i < wods.length(); i++) s.customWods.add(wod(wods.getJSONObject(i)));
+
+        JSONArray results = o.optJSONArray("wodResults");
+        if (results != null) {
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject j = results.getJSONObject(i);
+                WodResult r = new WodResult();
+                r.id = j.getLong("id");
+                r.wodId = j.getString("wodId");
+                r.wodName = j.optString("wodName", "WOD");
+                r.date = j.getLong("date");
+                r.type = j.optString("type", WodResult.DONE);
+                r.seconds = Math.max(0, j.optInt("seconds", 0));
+                r.rounds = Math.max(0, j.optInt("rounds", 0));
+                r.reps = Math.max(0, j.optInt("reps", 0));
+                r.rx = j.optBoolean("rx", true);
+                r.capped = j.optBoolean("capped", false);
+                r.note = j.has("note") ? j.getString("note") : null;
+                s.wodResults.add(r);
+                s.nextId = Math.max(s.nextId, r.id + 1);
+            }
+        }
+
+        JSONArray renfo = o.optJSONArray("renfo");
+        if (renfo != null) {
+            for (int i = 0; i < renfo.length(); i++) {
+                JSONObject j = renfo.getJSONObject(i);
+                RenfoLog l = new RenfoLog();
+                l.id = j.getLong("id");
+                l.routineId = j.optString("routineId", "");
+                l.name = j.optString("name", "Renfo");
+                l.date = j.getLong("date");
+                l.seconds = Math.max(0, j.optInt("seconds", 0));
+                s.renfoLogs.add(l);
+                s.nextId = Math.max(s.nextId, l.id + 1);
+            }
         }
     }
 

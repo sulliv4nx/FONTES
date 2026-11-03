@@ -10,8 +10,23 @@ android {
         applicationId = "com.fonte.carnet"
         minSdk = 26          // Android 8.0 et plus
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "2.0"
+        // Téléphones Android (ARM) uniquement : APK plus léger avec la lecture de texte.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+    }
+
+    // Même clé de signature à chaque compilation (GitHub ou Android Studio) :
+    // chaque nouvelle version s'installe par-dessus la précédente en gardant les données.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("fonte-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
@@ -34,6 +49,7 @@ android {
 }
 
 dependencies {
-    // Aucune dépendance pour l'appli elle-même : uniquement le SDK Android.
+    // Lecture du texte des photos (programmation du coach), modèle intégré : fonctionne hors ligne.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
     testImplementation("junit:junit:4.13.2")
 }

@@ -38,4 +38,9 @@ public abstract class Screen {
 
     public void onHide() {
     }
+
+    /** Résultat d'une activité lancée par l'écran (photo, fichier…). true si géré. */
+    public boolean onActivityResult(int request, int result, android.content.Intent data) {
+        return false;
+    }
 }

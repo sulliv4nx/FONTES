@@ -8,4 +8,8 @@ public class Settings {
     public double rounding = 2.5;
     /** Vibrer à la fin du repos. */
     public boolean vibrate = true;
+    /** Bips du chrono (WOD et renfo). */
+    public boolean sounds = true;
+    /** Compte à rebours avant le départ d'un chrono, en secondes. */
+    public int prepSeconds = 10;
 }

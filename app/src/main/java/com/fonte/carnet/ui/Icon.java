@@ -21,6 +21,8 @@ public class Icon extends Drawable {
     public static final int CHECK = 8;
     public static final int CHEVRON = 9;
     public static final int TIMER = 10;
+    public static final int KETTLEBELL = 11;
+    public static final int PULSE = 12;
 
     private final int type;
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -161,6 +163,30 @@ public class Icon extends Drawable {
                 circle(12, 13.5f, 8, false);
                 line(12, 13.5f, 12, 9);
                 line(10, 2.5f, 14, 2.5f);
+                break;
+            case KETTLEBELL:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(8), y(10));
+                path.lineTo(x(8), y(7));
+                path.quadTo(x(8), y(3.5f), x(12), y(3.5f));
+                path.quadTo(x(16), y(3.5f), x(16), y(7));
+                path.lineTo(x(16), y(10));
+                c.drawPath(path, stroke);
+                circle(12, 14.5f, 6.5f, false);
+                line(9, 20.5f, 15, 20.5f);
+                break;
+            case PULSE:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(2), y(12.5f));
+                path.lineTo(x(7), y(12.5f));
+                path.lineTo(x(9.5f), y(6));
+                path.lineTo(x(13.5f), y(19));
+                path.lineTo(x(16), y(11));
+                path.lineTo(x(17.5f), y(12.5f));
+                path.lineTo(x(22), y(12.5f));
+                c.drawPath(path, stroke);
                 break;
             default:
                 break;

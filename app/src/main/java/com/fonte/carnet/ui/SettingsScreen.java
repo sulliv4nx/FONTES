@@ -51,6 +51,34 @@ public class SettingsScreen extends Screen {
         vib.addView(sw);
         c.addView(vib);
 
+        c.addView(Ui.section(a, "Chrono CrossFit et renfo"));
+        LinearLayout snd = Ui.hbox(a);
+        snd.setPadding(Ui.dp(4), Ui.dp(4), 0, Ui.dp(8));
+        snd.addView(Ui.text(a, "Bips (3-2-1 et changements de phase)", 16, Ui.TEXT), Ui.weight(1));
+        Switch sw2 = new Switch(a);
+        sw2.setChecked(st.settings.sounds);
+        sw2.setOnCheckedChangeListener((b, on) -> {
+            st.settings.sounds = on;
+            st.save();
+        });
+        snd.addView(sw2);
+        c.addView(snd);
+        c.addView(Ui.text(a, "Compte à rebours avant le départ", 13, Ui.MUTED));
+        int[] preps = {0, 5, 10, 15, 20};
+        View[] prepChips = new View[preps.length];
+        for (int i = 0; i < preps.length; i++) {
+            int p = preps[i];
+            prepChips[i] = Ui.chip(a, p == 0 ? "Aucun" : p + " s", st.settings.prepSeconds == p, v -> {
+                st.settings.prepSeconds = p;
+                st.save();
+                a.refresh();
+            });
+        }
+        c.addView(Ui.chipRow(a, prepChips));
+        TextView volNote = Ui.text(a, "Le volume des bips suit le volume multimédia du téléphone.", 13, Ui.MUTED);
+        volNote.setPadding(Ui.dp(4), 0, 0, 0);
+        c.addView(volNote);
+
         c.addView(Ui.section(a, "Arrondi des charges calculées"));
         View[] roundChips = new View[ROUNDING.length];
         for (int i = 0; i < ROUNDING.length; i++) {
@@ -77,8 +105,10 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "À propos"));
         LinearLayout about = Ui.card(a);
-        about.addView(Ui.medium(a, "Fonte 1.1", 16, Ui.TEXT));
-        about.addView(Ui.text(a, st.sessions.size() + " séances enregistrées · "
+        about.addView(Ui.medium(a, "Fonte 2.0", 16, Ui.TEXT));
+        about.addView(Ui.text(a, st.sessions.size() + " séances de muscu · "
+                + Fmt.plural(st.wodResults.size(), "score") + " de WOD · "
+                + st.renfoLogs.size() + " circuits de renfo · "
                 + Fmt.plural(st.templates.size(), "modèle"), 13, Ui.MUTED));
         TextView safety = Ui.text(a, "1RM estimé avec la formule d'Epley. Les programmes à pourcentages sont exigeants : "
                 + "échauffe-toi, garde une technique propre et utilise un pareur ou des sécurités sur les charges lourdes.",

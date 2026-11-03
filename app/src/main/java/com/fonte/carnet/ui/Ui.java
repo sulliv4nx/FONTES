@@ -416,6 +416,61 @@ public final class Ui {
         e.requestFocus();
     }
 
+    /** Grille de cellules de même largeur (les cellules manquantes de la dernière ligne restent vides). */
+    public static LinearLayout grid(Context c, int columns, View... cells) {
+        LinearLayout g = vbox(c);
+        g.setLayoutParams(mlp(-1, -2, 0, 0, 0, 4));
+        LinearLayout row = null;
+        for (int i = 0; i < cells.length; i++) {
+            if (i % columns == 0) {
+                row = hbox(c);
+                row.setGravity(android.view.Gravity.TOP);
+                g.addView(row, mlp(-1, -2, 0, 0, 0, 8));
+            }
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -1, 1);
+            if (i % columns != columns - 1) p.rightMargin = dp(8);
+            row.addView(cells[i], p);
+        }
+        if (row != null) {
+            for (int i = cells.length % columns; i > 0 && i < columns; i++) {
+                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, 1, 1);
+                if (i != columns - 1) p.rightMargin = dp(8);
+                row.addView(new View(c), p);
+            }
+        }
+        return g;
+    }
+
+    /** Tuile cliquable : titre + sous-titre. */
+    public static LinearLayout tile(Context c, String title, String sub, View.OnClickListener l) {
+        LinearLayout t = vbox(c);
+        t.setBackground(pressable(outline(SURFACE, LINE, 16), 16));
+        t.setPadding(dp(14), dp(14), dp(14), dp(14));
+        t.setMinimumHeight(dp(84));
+        t.setOnClickListener(l);
+        TextView h = medium(c, title, 16, TEXT);
+        t.addView(h);
+        if (sub != null && !sub.isEmpty()) {
+            TextView s = text(c, sub, 13, MUTED);
+            s.setPadding(0, dp(3), 0, 0);
+            t.addView(s);
+        }
+        return t;
+    }
+
+    /** Champ de texte sur plusieurs lignes. */
+    public static EditText area(Context c, String hint, int minLines) {
+        EditText e = field(c, hint, TEXT_FIELD);
+        e.setSingleLine(false);
+        e.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        e.setMinLines(minLines);
+        e.setMaxLines(minLines * 3);
+        e.setGravity(Gravity.TOP | Gravity.START);
+        e.setSelectAllOnFocus(false);
+        e.setHorizontallyScrolling(false);
+        return e;
+    }
+
     /** Appelle f à chaque modification du texte. */
     public static void onText(EditText e, Consumer<String> f) {
         e.addTextChangedListener(new android.text.TextWatcher() {

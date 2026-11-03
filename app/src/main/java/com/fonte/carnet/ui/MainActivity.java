@@ -49,9 +49,13 @@ public class MainActivity extends Activity {
     private static final int REQ_IMPORT = 2;
 
     public static final int TAB_SESSION = 0;
-    public static final int TAB_HISTORY = 1;
-    public static final int TAB_PROGRAMS = 2;
-    public static final int TAB_RECORDS = 3;
+    public static final int TAB_CROSSFIT = 1;
+    public static final int TAB_RENFO = 2;
+    public static final int TAB_HISTORY = 3;
+    public static final int TAB_RECORDS = 4;
+    /** Les programmes (Smolov Jr, 5/3/1) sont rangés dans l'onglet Muscu. */
+    public static final int TAB_PROGRAMS = TAB_SESSION;
+    private static final int TABS = 5;
 
     Store store;
     private FrameLayout content;
@@ -59,9 +63,9 @@ public class MainActivity extends Activity {
     private ImageView backButton;
     private ImageView actionButton;
     private LinearLayout bottomNavigation;
-    private final LinearLayout[] tabButtons = new LinearLayout[4];
-    private final Icon[] tabIcons = new Icon[4];
-    private final TextView[] tabLabels = new TextView[4];
+    private final LinearLayout[] tabButtons = new LinearLayout[TABS];
+    private final Icon[] tabIcons = new Icon[TABS];
+    private final TextView[] tabLabels = new TextView[TABS];
     private final List<Screen> stack = new ArrayList<>();
     private int tab = TAB_SESSION;
 
@@ -110,6 +114,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         handler.removeCallbacks(ticker);
+        if (isFinishing()) {
+            ClockRunner r = ClockRunner.active();
+            if (r != null) r.stop();
+        }
         super.onDestroy();
     }
 
@@ -180,9 +188,9 @@ public class MainActivity extends Activity {
         bottomNavigation = bar;
         bar.setPadding(Ui.dp(6), Ui.dp(6), Ui.dp(6), Ui.dp(6));
         bar.setBackgroundColor(Ui.SURFACE);
-        String[] labels = {"Séance", "Historique", "Programmes", "Records"};
-        int[] icons = {Icon.BARBELL, Icon.HISTORY, Icon.PROGRAM, Icon.TROPHY};
-        for (int i = 0; i < 4; i++) {
+        String[] labels = {"Muscu", "CrossFit", "Renfo", "Historique", "Records"};
+        int[] icons = {Icon.BARBELL, Icon.KETTLEBELL, Icon.PULSE, Icon.HISTORY, Icon.TROPHY};
+        for (int i = 0; i < TABS; i++) {
             LinearLayout t = Ui.vbox(this);
             t.setGravity(Gravity.CENTER);
             t.setMinimumHeight(Ui.dp(62));
@@ -193,7 +201,7 @@ public class MainActivity extends Activity {
             tabIcons[i] = new Icon(icons[i], Ui.MUTED);
             iv.setImageDrawable(tabIcons[i]);
             t.addView(iv, Ui.lp(Ui.dp(24), Ui.dp(24)));
-            tabLabels[i] = Ui.medium(this, labels[i], 12, Ui.MUTED);
+            tabLabels[i] = Ui.medium(this, labels[i], 11, Ui.MUTED);
             tabLabels[i].setPadding(0, Ui.dp(3), 0, 0);
             tabLabels[i].setSingleLine(true);
             t.addView(tabLabels[i]);
@@ -233,10 +241,12 @@ public class MainActivity extends Activity {
 
     private Screen root(int t) {
         switch (t) {
+            case TAB_CROSSFIT:
+                return new CrossFitScreen();
+            case TAB_RENFO:
+                return new RenfoScreen();
             case TAB_HISTORY:
                 return new HistoryScreen();
-            case TAB_PROGRAMS:
-                return new ProgramsScreen();
             case TAB_RECORDS:
                 return new RecordsScreen();
             default:
@@ -315,7 +325,7 @@ public class MainActivity extends Activity {
         }
         content.addView(v, new FrameLayout.LayoutParams(-1, -1));
         updateHeader();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < TABS; i++) {
             int color = i == tab ? Ui.ACCENT : Ui.MUTED;
             tabIcons[i].setColor(color);
             tabLabels[i].setTextColor(color);
@@ -323,9 +333,14 @@ public class MainActivity extends Activity {
             tabButtons[i].setBackground(Ui.pressable(
                     Ui.rect(i == tab ? Ui.ACCENT_SOFT : Color.TRANSPARENT, 12), 12));
         }
-        if (store.current != null) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        refreshKeepScreenOn();
         safeTick(s);
+    }
+
+    /** Écran allumé pendant une séance ou un chrono. */
+    public void refreshKeepScreenOn() {
+        if (store.current != null || ClockRunner.running()) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     public void updateHeader() {
@@ -477,6 +492,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
+        Screen top = top();
+        if (top != null && top.onActivityResult(request, result, data)) return;
         if (result != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
         if (request == REQ_EXPORT) {

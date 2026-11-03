@@ -104,7 +104,7 @@ public class ChartView extends View {
         }
         fillPath.lineTo(lastX, bottom);
         fillPath.close();
-        area.setShader(new LinearGradient(0, top, 0, bottom, 0x55FF5A1F, 0x00FF5A1F, Shader.TileMode.CLAMP));
+        area.setShader(new LinearGradient(0, top, 0, bottom, (Ui.ACCENT & 0x00FFFFFF) | 0x55000000, Ui.ACCENT & 0x00FFFFFF, Shader.TileMode.CLAMP));
         c.drawPath(fillPath, area);
         c.drawPath(path, line);
         if (n <= 20) {
