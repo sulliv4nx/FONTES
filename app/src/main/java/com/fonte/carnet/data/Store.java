@@ -95,6 +95,8 @@ public final class Store {
     public String loadError;
 
     private Store(Context c) {
+        Context app = c.getApplicationContext() != null ? c.getApplicationContext() : c;
+        com.fonte.carnet.core.Ciqual.setSource(() -> app.getAssets().open("ciqual.tsv"));
         dir = c.getFilesDir();
         file = new AtomicFile(new File(dir, "fonte.json"));
         load();
@@ -397,7 +399,7 @@ public final class Store {
         Food f = Foods.find(id);
         if (f != null) return f;
         for (Food c : customFoods) if (id.equals(c.id)) return c;
-        return null;
+        return com.fonte.carnet.core.Ciqual.find(id);
     }
 
     public Food foodByBarcode(String code) {
@@ -435,6 +437,16 @@ public final class Store {
     public void deleteCustomFood(Food f) {
         customFoods.remove(f);
         save();
+    }
+
+    /** Dernière quantité notée pour cet aliment (g), ou 0. */
+    public double lastGrams(String foodId) {
+        if (foodId == null) return 0;
+        FoodEntry best = null;
+        for (FoodEntry e : foodEntries) {
+            if (foodId.equals(e.foodId) && e.grams > 0 && (best == null || e.time > best.time)) best = e;
+        }
+        return best == null ? 0 : best.grams;
     }
 
     /** Aliments utilisés récemment (sans doublon, du plus récent au plus ancien). */

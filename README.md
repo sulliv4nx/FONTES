@@ -1,4 +1,4 @@
-# Fonte 4.3 — sport, nutrition et suivi corporel pour Android
+# Fonte 4.4 — sport, nutrition et suivi corporel pour Android
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
@@ -18,7 +18,14 @@ Le récapitulatif du jour : calories restantes et macros, hydratation, calories 
   5. **protéines en g/kg** (1,6 à 2,2 g/kg, 2,6 g/kg de masse maigre en sèche), **lipides** de 20 à 35 % (jamais sous 0,5 g/kg), **glucides** = le reste, plus la séance les jours d'entraînement ;
   6. **réglage par la balance** : après 4 pesées sur 2 semaines, Fonte compare ta courbe au rythme visé et propose de corriger l'objectif de 100 à 200 kcal.
   Les répartitions en % de l'article « Calculer ses macros » restent disponibles (mode « En pourcentages »). Eau : 35 ml/kg, plus 500 ml par heure de séance.
-- **Journal par repas** (petit-déjeuner, déjeuner, dîner, collations) : base d'environ 95 aliments courants, aliments récents, aliments perso.
+- **Journal par repas** (petit-déjeuner, déjeuner, dîner, collations), avec une **recherche multisource** (version 4.4) : une seule barre de recherche fouille à la fois
+  - tes aliments perso et tes récents (en tête de liste) ;
+  - la base Fonte (environ 100 aliments courants, dont des produits réunionnais) et ses plats (61 recettes, créoles comprises) ;
+  - la **table Ciqual 2025** de l'ANSES : 3 400 aliments français bruts et cuisinés, dans le téléphone, sans réseau ;
+  - **Open Food Facts** en ligne : les produits de marque, cherchés par nom ; ceux vendus à La Réunion et en France passent en premier, et un produit choisi est gardé dans tes aliments.
+  Les résultats sont fusionnés sans doublons, classés par pertinence (sans tenir compte des accents ni des pluriels), avec leur source et des filtres Aliments / Marques / Plats. Sans réseau, la recherche continue dans les sources du téléphone.
+- **Quantité** : portions toutes prêtes (100 g, la portion du produit ou une portion courante : 1 filet, 1 œuf, 1 pot…, et « Ma portion », la dernière quantité notée), réglage au gramme, calories et macros en direct.
+- **Un plat comme repas** : nombre d'assiettes, ingrédients modifiables ou remplaçables, ajout en un seul plat ou ingrédient par ingrédient, « Garder comme mon plat ».
 - **Code-barres** : la photo du code est lue sur le téléphone, puis la fiche produit vient d'Open Food Facts (connexion nécessaire).
 - **Étiquette** : la photo du tableau nutritionnel est lue sur le téléphone, et les valeurs sont pré-remplies.
 - **Photo du repas** : jointe au journal. Elle ne calcule pas les calories : il faudrait un service d'IA en ligne.
@@ -83,3 +90,8 @@ app/src/test/   tests unitaires (./gradlew test)
 ## Sécurité
 
 Les WOD Heroes et les programmes à pourcentages sont exigeants. Échauffe-toi, adapte charges et volume, garde une technique propre et travaille avec un pareur ou des sécurités sur les charges lourdes.
+
+## Sources des données
+
+- **Table Ciqual 2025**, ANSES (https://ciqual.anses.fr), licence ouverte Etalab 2.0 / CC-BY 4.0. Elle est téléchargée sur Zenodo et convertie à chaque compilation par `tools/CiqualImport.java` (tâche Gradle `ciqualImport`) ; si le téléchargement échoue, la compilation échoue.
+- **Open Food Facts** (https://world.openfoodfacts.org), base ouverte sous licence ODbL : fiches produits par code-barres et recherche par nom, au plus une recherche toutes les 6 secondes.

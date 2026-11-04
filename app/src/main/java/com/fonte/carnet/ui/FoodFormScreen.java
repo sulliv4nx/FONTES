@@ -26,6 +26,14 @@ public class FoodFormScreen extends Screen {
     private String gramsText;
     private boolean keep = true;
 
+    /** Texte d'aide affiché en tête du formulaire (remplace celui par défaut). */
+    private String note;
+
+    public FoodFormScreen withNote(String n) {
+        note = n;
+        return this;
+    }
+
     /** @param prefill valeurs lues (code-barres, étiquette) ou nom à créer ; null pour une saisie vierge. */
     public FoodFormScreen(Food prefill, String meal, int day, String photo) {
         this.meal = meal;
@@ -54,7 +62,9 @@ public class FoodFormScreen extends Screen {
     @Override
     public View build() {
         LinearLayout c = Ui.vbox(a);
-        if (prefilled) {
+        if (note != null) {
+            c.addView(Ui.hint(a, note));
+        } else if (prefilled) {
             c.addView(Ui.hint(a, draft.barcode != null
                     ? "Valeurs issues d'Open Food Facts (code " + draft.barcode + "). Vérifie-les avec l'emballage."
                     : "Valeurs lues sur la photo de l'étiquette. Vérifie-les : la lecture peut se tromper d'un chiffre."));

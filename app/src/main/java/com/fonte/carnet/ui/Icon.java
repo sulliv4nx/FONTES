@@ -38,6 +38,10 @@ public class Icon extends Drawable {
     public static final int SHARE = 25;
     public static final int SHAKER = 26;
     public static final int COPY = 27;
+    public static final int CLOSE = 28;
+    public static final int SEARCH = 29;
+    public static final int GLOBE = 30;
+    public static final int OFFLINE = 31;
 
     private final int type;
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -168,6 +172,31 @@ public class Icon extends Drawable {
             case PLUS:
                 line(12, 5, 12, 19);
                 line(5, 12, 19, 12);
+                break;
+            case CLOSE:
+                line(6, 6, 18, 18);
+                line(18, 6, 6, 18);
+                break;
+            case SEARCH:
+                circle(11, 11, 6.5f, false);
+                line(16, 16, 20, 20);
+                break;
+            case GLOBE:
+                circle(12, 12, 8.5f, false);
+                line(3.5f, 12, 20.5f, 12);
+                c.drawOval(x(8.2f), y(3.5f), x(15.8f), y(20.5f), stroke);
+                break;
+            case OFFLINE:
+                stroke.setStrokeWidth(2f * u);
+                path.reset();
+                path.moveTo(x(4), y(9));
+                path.quadTo(x(12), y(2), x(20), y(9));
+                path.moveTo(x(7), y(12.5f));
+                path.quadTo(x(12), y(8.5f), x(17), y(12.5f));
+                path.moveTo(x(10), y(16));
+                path.quadTo(x(12), y(14.5f), x(14), y(16));
+                c.drawPath(path, stroke);
+                line(3, 3, 21, 21);
                 break;
             case CHECK:
                 stroke.setStrokeWidth(2.6f * u);
