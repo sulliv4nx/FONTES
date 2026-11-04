@@ -24,6 +24,8 @@ public final class MealPlanner {
     private static final double MIN_PROT = 0.75;
     private static final double MIN_FAT = 0.5;
     private static final double MAX_FACTOR = 2.2;
+    /** Les féculents peuvent monter plus haut : les jours de séance demandent beaucoup de glucides. */
+    private static final double MAX_REST = 3.0;
     /** Écart toléré pour proposer un remplacement. */
     public static final double SWAP_TOLERANCE = 0.10;
 
@@ -229,7 +231,7 @@ public final class MealPlanner {
         double[] k = new double[4];
         double[] pr = new double[4];
         double[] fa = new double[4];
-        double[] hi = {MAX_FACTOR, MAX_FACTOR, 1, 1.6};
+        double[] hi = {MAX_FACTOR, MAX_REST, 1, 1.6};
         for (Recipe.Ing i : r.ingredients) {
             Food f = Foods.find(i.foodId);
             if (f == null) continue;
@@ -277,7 +279,7 @@ public final class MealPlanner {
                         double ep = 4 * (pp - protein) / scale;
                         double ef = fat > 0 ? 9 * (ff - fat) / scale : 0;
                         // Manquer de protéines compte plus qu'en avoir un peu trop.
-                        double wp = ep < 0 ? 8 : 3;
+                        double wp = ep < 0 ? 8 : 5;
                         double err = 12 * ek * ek + wp * ep * ep + 1.5 * ef * ef
                                 + 0.01 * ((a - 1) * (a - 1) + (b - 1) * (b - 1));
                         if (err < bestErr) {
@@ -321,15 +323,30 @@ public final class MealPlanner {
     }
 
     public static MealPlan generate(MealPrefs p, Targets t, int start, long seed) {
+        return generate(p, t, t, start, seed);
+    }
+
+    /**
+     * Semaine de repas. Les jours d'entraînement prévus visent les objectifs « séance » (les calories de la
+     * séance passent en glucides), les autres jours ceux d'un jour sans séance.
+     */
+    public static MealPlan generate(MealPrefs p, Targets rest, Targets training, int start, long seed) {
         Random rnd = new Random(seed);
         MealPlan plan = new MealPlan();
         plan.start = start;
         plan.days = 7;
         plan.seed = seed;
-        plan.kcal = t.kcal;
-        plan.protein = t.protein;
-        plan.carbs = t.carbs;
-        plan.fat = t.fat;
+        plan.kcal = rest.kcal;
+        plan.protein = rest.protein;
+        plan.carbs = rest.carbs;
+        plan.fat = rest.fat;
+        plan.trainingMask = Math.max(0, p.trainingMask);
+        if (training != null && training != rest && training.kcal > rest.kcal) {
+            plan.trainKcal = training.kcal;
+            plan.trainProtein = training.protein;
+            plan.trainCarbs = training.carbs;
+            plan.trainFat = training.fat;
+        }
 
         int[] n = distinct(p.variety);
         List<Recipe> breakfasts = pick(candidates(p, Recipe.BREAKFAST), n[0], p, rnd);
@@ -348,6 +365,7 @@ public final class MealPlanner {
         int snackTurn = rnd.nextInt(Math.max(1, snacks.size()));
         for (int d = 0; d < plan.days; d++) {
             int day = Days.add(start, d);
+            Targets t = plan.trainingDay(day) ? training : rest;
             List<String> slots = slots(p.meals, shakerDay(p, day));
             List<MealPlan.Meal> dayMeals = new ArrayList<>();
             String lastSnack = null;

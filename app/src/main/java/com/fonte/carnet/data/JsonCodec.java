@@ -144,6 +144,18 @@ final class JsonCodec {
         pj.put("proteinPerKg", finite(p.proteinPerKg));
         pj.put("fatPerKg", finite(p.fatPerKg));
         pj.put("waterOverride", p.waterOverride);
+        pj.put("split", p.split);
+        pj.put("pctProtein", p.pctProtein);
+        pj.put("pctCarbs", p.pctCarbs);
+        pj.put("pctFat", p.pctFat);
+        pj.put("bmrFormula", p.bmrFormula);
+        pj.put("daily", finite(p.daily));
+        pj.put("lossRate", finite(p.lossRate));
+        pj.put("gainRate", finite(p.gainRate));
+        pj.put("kcalAdjust", p.kcalAdjust);
+        pj.put("adjustDay", p.adjustDay);
+        pj.put("method", p.method);
+        pj.put("fatPct", p.fatPct);
         o.put("profile", pj);
 
         JSONArray foods = new JSONArray();
@@ -265,6 +277,11 @@ final class JsonCodec {
         j.put("protein", plan.protein);
         j.put("carbs", plan.carbs);
         j.put("fat", plan.fat);
+        j.put("trainKcal", plan.trainKcal);
+        j.put("trainProtein", plan.trainProtein);
+        j.put("trainCarbs", plan.trainCarbs);
+        j.put("trainFat", plan.trainFat);
+        j.put("trainingMask", plan.trainingMask);
         JSONArray meals = new JSONArray();
         for (MealPlan.Meal m : plan.meals) {
             JSONObject mj = new JSONObject();
@@ -345,6 +362,11 @@ final class JsonCodec {
         plan.protein = j.optInt("protein", 0);
         plan.carbs = j.optInt("carbs", 0);
         plan.fat = j.optInt("fat", 0);
+        plan.trainKcal = j.optInt("trainKcal", 0);
+        plan.trainProtein = j.optInt("trainProtein", 0);
+        plan.trainCarbs = j.optInt("trainCarbs", 0);
+        plan.trainFat = j.optInt("trainFat", 0);
+        plan.trainingMask = Math.max(0, j.optInt("trainingMask", 0));
         JSONArray meals = j.optJSONArray("meals");
         if (meals != null) {
             for (int i = 0; i < meals.length(); i++) {
@@ -400,6 +422,22 @@ final class JsonCodec {
             p.proteinPerKg = finite(pj.optDouble("proteinPerKg", 2.0));
             p.fatPerKg = finite(pj.optDouble("fatPerKg", 0.9));
             p.waterOverride = Math.max(0, pj.optInt("waterOverride", 0));
+            p.split = pj.optString("split", Profile.SPLIT_AUTO);
+            p.pctProtein = Math.max(0, Math.min(100, pj.optInt("pctProtein", 30)));
+            p.pctCarbs = Math.max(0, Math.min(100, pj.optInt("pctCarbs", 50)));
+            p.pctFat = Math.max(0, Math.min(100, pj.optInt("pctFat", 20)));
+            // 4.3 : sans ces champs (sauvegarde 4.2 ou plus ancienne), la méthode conseillée s'applique.
+            p.bmrFormula = pj.optString("bmrFormula", Profile.BMR_TENHAAF);
+            p.daily = finite(pj.optDouble("daily", 1.4));
+            if (p.daily < 1.2 || p.daily > 2.0) p.daily = 1.4;
+            p.lossRate = finite(pj.optDouble("lossRate", 0.75));
+            p.gainRate = finite(pj.optDouble("gainRate", 0.25));
+            p.kcalAdjust = Math.max(-600, Math.min(600, pj.optInt("kcalAdjust", 0)));
+            p.adjustDay = Math.max(0, pj.optInt("adjustDay", 0));
+            p.method = Profile.METHOD_PERCENT.equals(pj.optString("method", Profile.METHOD_GRAMS))
+                    ? Profile.METHOD_PERCENT : Profile.METHOD_GRAMS;
+            p.fatPct = Math.max(15, Math.min(40, pj.optInt("fatPct", 25)));
+            if (p.proteinPerKg < 1.2 || p.proteinPerKg > 3.1) p.proteinPerKg = 2.0;
             s.profile = p;
         }
         JSONArray foods = o.optJSONArray("foods");

@@ -60,13 +60,12 @@ public class MealPlanScreen extends ScrollScreen {
         if (today > plan.end()) c.addView(finishedCard());
         c.addView(weekStrip(plan, today));
         c.addView(composeCard());
-        if (Math.abs(st.targetKcal() - plan.kcal) >= 50) c.addView(targetChangedCard(plan));
+        if (targetsChanged(plan)) c.addView(targetChangedCard(plan));
         c.addView(summaryCard(plan));
         for (MealPlan.Meal m : plan.mealsOf(day)) c.addView(mealCard(plan, m, today));
         TextView shop = Ui.button(a, "Liste de courses de la semaine", Ui.PRIMARY, v -> a.show(new ShoppingScreen()));
         c.addView(shop);
-        TextView note = Ui.text(a, "Plan calculé pour " + Fmt.kg(plan.kcal) + " kcal · P " + plan.protein + " g · G " + plan.carbs
-                + " g · L " + plan.fat + " g par jour, hors calories de tes séances. Les valeurs sont des moyennes indicatives.", 12, Ui.FAINT);
+        TextView note = Ui.text(a, "Plan calculé pour " + describe(plan) + ". Les valeurs sont des moyennes indicatives.", 12, Ui.FAINT);
         note.setPadding(0, Ui.dp(10), 0, 0);
         c.addView(note);
         return page(c);
@@ -126,9 +125,12 @@ public class MealPlanScreen extends ScrollScreen {
 
     private View targetChangedCard(MealPlan plan) {
         LinearLayout card = Ui.card(a);
-        card.addView(Ui.medium(a, "Ton objectif a changé", 16, Ui.TEXT));
-        TextView t = Ui.text(a, "Le plan vise " + Fmt.kg(plan.kcal) + " kcal, ton objectif est maintenant de " + Fmt.kg(st.targetKcal())
-                + " kcal. Régénère la semaine pour l'ajuster.", 13, Ui.MUTED);
+        card.addView(Ui.medium(a, "Tes objectifs ont changé", 16, Ui.TEXT));
+        MealPlanner.Targets rest = st.mealTargets();
+        MealPlanner.Targets train = st.mealTrainingTargets();
+        TextView t = Ui.text(a, "Le plan vise " + describe(plan) + ". Ton objectif est maintenant " + Fmt.kg(rest.kcal)
+                + " kcal sans séance et " + Fmt.kg(train.kcal) + " kcal les jours d'entraînement (P " + rest.protein + " · L " + rest.fat
+                + "). Régénère la semaine pour l'ajuster.", 13, Ui.MUTED);
         t.setPadding(0, Ui.dp(4), 0, 0);
         card.addView(t);
         card.addView(Ui.buttonRow(a, Ui.smallButton(a, "Régénérer", Ui.SECONDARY, v -> a.show(new MealSetupScreen()))));
@@ -179,8 +181,28 @@ public class MealPlanScreen extends ScrollScreen {
         return true;
     }
 
+    /** Objectifs du profil différents de ceux du plan (ou jours d'entraînement changés). */
+    private boolean targetsChanged(MealPlan plan) {
+        MealPlanner.Targets rest = st.mealTargets();
+        MealPlanner.Targets train = st.mealTrainingTargets();
+        int planTrain = plan.trainKcal > 0 ? plan.trainKcal : plan.kcal;
+        int nowTrain = train.kcal > rest.kcal ? train.kcal : rest.kcal;
+        boolean maskChanged = plan.trainKcal > 0 && plan.trainingMask != Math.max(0, st.mealPrefs().trainingMask);
+        return Math.abs(rest.kcal - plan.kcal) >= 50 || Math.abs(rest.protein - plan.protein) >= 10
+                || Math.abs(rest.fat - plan.fat) >= 8 || Math.abs(nowTrain - planTrain) >= 50 || maskChanged;
+    }
+
+    private static String describe(MealPlan plan) {
+        String s = Fmt.kg(plan.kcal) + " kcal · P " + plan.protein + " g · G " + plan.carbs + " g · L " + plan.fat + " g";
+        if (plan.trainKcal > 0) {
+            return s + " les jours sans séance, et " + Fmt.kg(plan.trainKcal) + " kcal · G " + plan.trainCarbs + " g les jours d'entraînement";
+        }
+        return s + " par jour";
+    }
+
     private View summaryCard(MealPlan plan) {
         Nutrition.Totals t = plan.totals(day);
+        int[] goal = plan.targetsOn(day);
         List<MealPlan.Meal> meals = plan.mealsOf(day);
         int eaten = 0;
         double eatenKcal = 0;
@@ -192,7 +214,8 @@ public class MealPlanScreen extends ScrollScreen {
         LinearLayout card = Ui.card(a);
         LinearLayout head = Ui.hbox(a);
         LinearLayout left = Ui.vbox(a);
-        TextView label = Ui.medium(a, ("Plan du " + MealPlanner.weekdayLong(day) + " " + dayMonth(day)).toUpperCase(Locale.FRENCH), 11, Ui.MUTED);
+        TextView label = Ui.medium(a, ("Plan du " + MealPlanner.weekdayLong(day) + " " + dayMonth(day)
+                + (plan.trainingDay(day) ? " · jour de séance" : "")).toUpperCase(Locale.FRENCH), 11, Ui.MUTED);
         label.setLetterSpacing(0.06f);
         left.addView(label);
         TextView big = Ui.text(a, Fmt.kg(Math.round(t.kcal)) + " ", 30, Ui.TEXT);
@@ -201,23 +224,23 @@ public class MealPlanScreen extends ScrollScreen {
         LinearLayout kcalRow = Ui.hbox(a);
         kcalRow.setGravity(Gravity.BOTTOM);
         kcalRow.addView(big);
-        TextView of = Ui.text(a, "/ " + Fmt.kg(plan.kcal) + " kcal", 15, Ui.MUTED);
+        TextView of = Ui.text(a, "/ " + Fmt.kg(goal[0]) + " kcal", 15, Ui.MUTED);
         of.setPadding(0, 0, 0, Ui.dp(5));
         kcalRow.addView(of);
         left.addView(kcalRow);
         head.addView(left, Ui.weight(1));
-        double gap = plan.kcal > 0 ? Math.abs(t.kcal - plan.kcal) / plan.kcal : 1;
+        double gap = goal[0] > 0 ? Math.abs(t.kcal - goal[0]) / goal[0] : 1;
         if (gap <= 0.05) head.addView(Ui.badge(a, "Objectif tenu", Ui.BG, Ui.OK));
         card.addView(head);
         LinearLayout macros = Ui.hbox(a);
         macros.setGravity(Gravity.TOP);
         macros.setPadding(0, Ui.dp(12), 0, 0);
-        macros.addView(mini("Protéines", t.protein, plan.protein, Ui.PROTEIN), Ui.weight(1));
+        macros.addView(mini("Protéines", t.protein, goal[1], Ui.PROTEIN), Ui.weight(1));
         LinearLayout.LayoutParams mid = Ui.weight(1);
         mid.leftMargin = Ui.dp(10);
         mid.rightMargin = Ui.dp(10);
-        macros.addView(mini("Glucides", t.carbs, plan.carbs, Ui.CARBS), mid);
-        macros.addView(mini("Lipides", t.fat, plan.fat, Ui.FAT), Ui.weight(1));
+        macros.addView(mini("Glucides", t.carbs, goal[2], Ui.CARBS), mid);
+        macros.addView(mini("Lipides", t.fat, goal[3], Ui.FAT), Ui.weight(1));
         card.addView(macros);
         TextView done = Ui.text(a, eaten + " repas sur " + meals.size() + " coché" + (eaten > 1 ? "s" : "")
                 + (eaten > 0 ? " · " + Fmt.kg(Math.round(eatenKcal)) + " kcal mangées" : ""), 12, Ui.FAINT);

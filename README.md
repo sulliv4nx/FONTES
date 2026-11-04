@@ -1,4 +1,4 @@
-# Fonte 4.1 — sport, nutrition et suivi corporel pour Android
+# Fonte 4.3 — sport, nutrition et suivi corporel pour Android
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
@@ -10,15 +10,22 @@ Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun
 Le récapitulatif du jour : calories restantes et macros, hydratation, calories dépensées, séance du jour ou programme, poids et sa courbe, semaine d'activité et derniers records.
 
 ### Nutrition
-- **Besoins calculés** selon le profil (Mifflin-St Jeor) : objectif calorique (perte, maintien ou prise de masse), protéines et lipides en g/kg, glucides pour le reste, eau (35 ml/kg, plus 500 ml les jours d'entraînement).
+- **Besoins calculés** avec la méthode la mieux étayée par les études (version 4.3) :
+  1. métabolisme de base de **Ten Haaf** (la plus précise chez les sportifs), ou Cunningham / Ten Haaf masse maigre si ta masse grasse est connue, ou Mifflin-St Jeor au choix ;
+  2. × **activité du quotidien sans le sport** (bureau ×1,4, debout ×1,55, travail physique ×1,75, d'après les fourchettes FAO/OMS) ;
+  3. **objectif en rythme de poids** : perte de 0,5 à 1 % du poids par semaine, prise de 0,25 à 0,5 %, converti avec 7 700 kcal par kg ;
+  4. **+ les calories nettes des séances** du jour (MET − 1, le repos étant déjà compté). Les jours d'entraînement prévus, une séance type est comptée tant que la séance n'est pas notée ;
+  5. **protéines en g/kg** (1,6 à 2,2 g/kg, 2,6 g/kg de masse maigre en sèche), **lipides** de 20 à 35 % (jamais sous 0,5 g/kg), **glucides** = le reste, plus la séance les jours d'entraînement ;
+  6. **réglage par la balance** : après 4 pesées sur 2 semaines, Fonte compare ta courbe au rythme visé et propose de corriger l'objectif de 100 à 200 kcal.
+  Les répartitions en % de l'article « Calculer ses macros » restent disponibles (mode « En pourcentages »). Eau : 35 ml/kg, plus 500 ml par heure de séance.
 - **Journal par repas** (petit-déjeuner, déjeuner, dîner, collations) : base d'environ 95 aliments courants, aliments récents, aliments perso.
 - **Code-barres** : la photo du code est lue sur le téléphone, puis la fiche produit vient d'Open Food Facts (connexion nécessaire).
 - **Étiquette** : la photo du tableau nutritionnel est lue sur le téléphone, et les valeurs sont pré-remplies.
 - **Photo du repas** : jointe au journal. Elle ne calcule pas les calories : il faudrait un service d'IA en ligne.
-- **Calories dépensées** : estimées (MET) à partir des séances, WOD et circuits, plus les activités ajoutées (course, vélo…) ou les calories de ta montre.
+- **Calories dépensées** : calories nettes estimées (MET − 1) à partir des séances, WOD et circuits, plus les activités ajoutées (course, vélo…) ou les calories actives de ta montre. Elles s'ajoutent à l'objectif du jour.
 
 ### Mes repas (Nutrition › Mes repas)
-- **Plan de 7 jours** : petit-déjeuner, collations, déjeuner, dîner et shaker, choisis parmi une cinquantaine de recettes. Chaque recette est ajustée (protéines, féculents, matières grasses) pour viser tes calories, protéines et lipides du jour.
+- **Plan de 7 jours** : petit-déjeuner, collations, déjeuner, dîner et shaker, choisis parmi une cinquantaine de recettes. Chaque recette est ajustée (protéines, féculents, matières grasses) pour viser tes calories, protéines et lipides du jour. Les jours d'entraînement visent plus de calories, en glucides.
 - **Réglages** : 3, 4 ou 5 prises par jour, shaker les jours d'entraînement (repérés dans ton historique) ou tous les jours, sans porc, végétarien, sans lactose, poisson 2 fois par semaine, cuisine créole, petit budget, aliments à éviter, cuisine en lot (un plat pour 2 jours), variété.
 - **Chaque plat** : quantités en grammes (poids cuit et équivalent cru ou sec), macros, étapes de préparation. « Mangé » l'ajoute au journal du jour.
 - **Remplacer un plat** : 3 propositions aux mêmes calories et protéines (±10 %), ou toutes les recettes au choix.

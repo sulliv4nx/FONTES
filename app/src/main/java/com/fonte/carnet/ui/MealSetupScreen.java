@@ -49,6 +49,7 @@ public class MealSetupScreen extends ScrollScreen {
 
     private View goalCard() {
         Nutrition.Macros m = st.targetMacros();
+        Nutrition.Targets train = st.trainingTargets();
         LinearLayout card = Ui.card(a);
         LinearLayout row = Ui.hbox(a);
         row.addView(Ui.iconBadge(a, Icon.SPARK, Ui.ACCENT));
@@ -57,8 +58,11 @@ public class MealSetupScreen extends ScrollScreen {
         TextView label = Ui.medium(a, "MON OBJECTIF", 11, Ui.MUTED);
         label.setLetterSpacing(0.06f);
         txt.addView(label);
-        txt.addView(Ui.medium(a, st.profile.goalLabel() + " · " + Fmt.kg(m.kcal) + " kcal", 16, Ui.TEXT));
+        txt.addView(Ui.medium(a, st.profile.goalLabel() + " · " + Fmt.kg(m.kcal) + " kcal" + (train.kcal > m.kcal ? " sans séance" : ""), 16, Ui.TEXT));
         txt.addView(Ui.text(a, "P " + m.protein + " g · G " + m.carbs + " g · L " + m.fat + " g", 13, Ui.MUTED));
+        if (train.kcal > m.kcal) {
+            txt.addView(Ui.text(a, "Jours d'entraînement : " + Fmt.kg(train.kcal) + " kcal · G " + train.carbs + " g", 13, Ui.MUTED));
+        }
         row.addView(txt, Ui.weight(1));
         TextView edit = Ui.medium(a, "Modifier", 14, Ui.ACCENT);
         edit.setPadding(Ui.dp(8), Ui.dp(12), 0, Ui.dp(12));

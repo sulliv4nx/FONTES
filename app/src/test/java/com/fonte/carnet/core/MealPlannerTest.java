@@ -105,6 +105,41 @@ public class MealPlannerTest {
         }
     }
 
+    /** Méthode 4.3 : jours d'entraînement à 3 320 kcal (séance en glucides), autres jours à 2 940 kcal. */
+    @Test
+    public void trainingDaysGetSessionCalories() {
+        MealPlanner.Targets rest = new MealPlanner.Targets(2940, 180, 371, 82);
+        MealPlanner.Targets train = new MealPlanner.Targets(3320, 180, 466, 82);
+        for (long seed = 1; seed <= 20; seed++) {
+            MealPrefs p = prefs();
+            p.meals = 3 + (int) (seed % 3);
+            MealPlan plan = MealPlanner.generate(p, rest, train, START, seed);
+            assertEquals(3320, plan.trainKcal);
+            int trainingDays = 0;
+            double protein = 0;
+            for (int d = 0; d < 7; d++) {
+                int day = Days.add(START, d);
+                boolean training = plan.trainingDay(day);
+                if (training) trainingDays++;
+                int[] target = plan.targetsOn(day);
+                assertEquals(training ? 3320 : 2940, target[0]);
+                Nutrition.Totals t = plan.totals(day);
+                String where = "graine " + seed + ", jour " + day;
+                assertEquals(where + " kcal", target[0], t.kcal, target[0] * 0.08);
+                // Les féculents apportent aussi des protéines : un surplus est toléré les gros jours.
+                assertTrue(where + " protéines " + t.protein, t.protein >= 180 * 0.9 && t.protein <= 180 * 1.5);
+                protein += t.protein;
+            }
+            assertEquals(4, trainingDays);
+            assertTrue("graine " + seed + " protéines moyennes " + protein / 7, protein / 7 <= 180 * 1.2);
+        }
+        // Sans objectifs « séance » distincts, tous les jours visent la même chose.
+        MealPlan same = MealPlanner.generate(prefs(), rest, START, 3);
+        assertEquals(0, same.trainKcal);
+        assertFalse(same.trainingDay(20261103));
+        assertEquals(2940, same.targetsOn(20261103)[0]);
+    }
+
     @Test
     public void lighterTargetsToo() {
         MealPlanner.Targets lose = new MealPlanner.Targets(1800, 150, 176, 55);

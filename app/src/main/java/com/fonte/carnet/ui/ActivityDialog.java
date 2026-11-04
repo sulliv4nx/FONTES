@@ -8,7 +8,7 @@ import android.widget.TextView;
 import com.fonte.carnet.core.Fmt;
 import com.fonte.carnet.core.Nutrition;
 
-/** Ajout d'une activité hors séance (course, vélo…) avec estimation des calories (MET). */
+/** Ajout d'une activité hors séance (course, vélo…) avec estimation des calories nettes (MET − 1). */
 final class ActivityDialog {
     private ActivityDialog() {
     }
@@ -33,13 +33,13 @@ final class ActivityDialog {
         TextView live = Ui.medium(a, "", 15, Ui.ACCENT);
         Runnable update = () -> {
             int m = Fmt.parseInt(minutes.getText().toString());
-            live.setText("≈ " + Nutrition.kcal(met, weight, m) + " kcal pour " + m + " min (" + Fmt.kg(weight) + " kg)");
+            live.setText("≈ " + Nutrition.netKcal(met, weight, m) + " kcal nettes pour " + m + " min (" + Fmt.kg(weight) + " kg)");
         };
         Ui.onText(minutes, t -> update.run());
         update.run();
         box.addView(Ui.labelled(a, "Durée (minutes)", minutes));
         box.addView(live, Ui.mlp(-1, -2, 0, 0, 0, 10));
-        box.addView(Ui.labelled(a, "Ou calories de ta montre (facultatif)", kcal));
+        box.addView(Ui.labelled(a, "Ou calories actives de ta montre (facultatif)", kcal));
         AlertDialog d = new AlertDialog.Builder(a)
                 .setTitle(name)
                 .setView(box)
@@ -53,7 +53,7 @@ final class ActivityDialog {
                 return;
             }
             int manual = Fmt.parseInt(kcal.getText().toString());
-            int k = manual > 0 ? manual : Nutrition.kcal(met, weight, m);
+            int k = manual > 0 ? manual : Nutrition.netKcal(met, weight, m);
             a.store.addActivity(name, m, k, day);
             Ui.hideKeyboard(minutes);
             d.dismiss();

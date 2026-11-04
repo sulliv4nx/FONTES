@@ -77,10 +77,9 @@ public class NutritionScreen extends Screen {
 
     private View summaryCard() {
         Nutrition.Totals t = Nutrition.totals(st.foodEntries, day, null);
-        int burned = Nutrition.total(st.burned(day));
-        int target = st.targetKcal();
-        int goal = target + burned;
-        Nutrition.Macros m = st.targetMacros(day);
+        Nutrition.Targets target = st.targets(day);
+        int goal = target.kcal;
+        Nutrition.Macros m = target.macros();
         LinearLayout card = Ui.card(a);
         LinearLayout row = Ui.hbox(a);
         RingView ring = new RingView(a);
@@ -95,11 +94,13 @@ public class NutritionScreen extends Screen {
         row.addView(macros, Ui.weight(1));
         card.addView(row);
         card.addView(Ui.divider(a));
-        card.addView(Ui.row(a, "Objectif (" + st.profile.goalLabel().toLowerCase(java.util.Locale.FRENCH) + ")", Fmt.kg(target) + " kcal"));
-        card.addView(Ui.row(a, "+ Activité du jour", Fmt.kg(burned) + " kcal"));
-        if (burned > 0) {
-            TextView extra = Ui.text(a, "Ces " + Fmt.kg(burned) + " kcal de séance sont ajoutées en glucides : +"
-                    + Math.round(burned / 4.0) + " g aujourd'hui.", 12, Ui.MUTED);
+        card.addView(Ui.row(a, target.imposed ? "Objectif imposé"
+                : "Objectif sans séance (" + st.profile.goalLabel().toLowerCase(java.util.Locale.FRENCH) + ")", Fmt.kg(target.base) + " kcal"));
+        if (target.sessionKcal > 0) {
+            card.addView(Ui.row(a, target.planned ? "+ Séance prévue" : "+ Séances du jour (nettes)", Fmt.kg(target.sessionKcal) + " kcal"));
+            TextView extra = Ui.text(a, target.planned
+                    ? "Une séance type est comptée ce jour d'entraînement. Elle sera remplacée par ta vraie séance dès qu'elle sera notée."
+                    : "Ajoutées en glucides : protéines et lipides ne changent pas.", 12, Ui.MUTED);
             extra.setPadding(0, 0, 0, Ui.dp(4));
             card.addView(extra);
         }
@@ -182,8 +183,10 @@ public class NutritionScreen extends Screen {
             row.addView(b, lp);
         }
         card.addView(row);
-        TextView hint = Ui.text(a, "Objectif : 35 ml par kg de poids" + (st.trained(day) ? ", +500 ml car tu t'es entraîné" : "")
-                + ". Modifiable dans ton profil.", 12, Ui.MUTED);
+        Nutrition.Targets tw = st.targets(day);
+        TextView hint = Ui.text(a, st.profile.waterOverride > 0 ? "Objectif imposé dans ton profil."
+                : "Objectif : 35 ml par kg de poids" + (tw.sessionMinutes > 0 ? ", +500 ml par heure de séance (" + tw.sessionMinutes + " min)" : "")
+                + ". Pèse-toi avant et après une séance : chaque kg perdu se compense par environ 1,5 L.", 12, Ui.MUTED);
         hint.setPadding(0, Ui.dp(10), 0, 0);
         card.addView(hint);
         return card;
@@ -219,8 +222,9 @@ public class NutritionScreen extends Screen {
             }
             card.addView(row);
         }
-        int base = Nutrition.maintenance(st.profile, st.weightForCalc(), st.profile.age(System.currentTimeMillis()));
-        TextView t = Ui.text(a, "Métabolisme et vie quotidienne : ≈ " + Fmt.kg(base) + " kcal par jour (déjà compris dans ton objectif).", 12, Ui.MUTED);
+        Nutrition.Targets rest = st.restTargets();
+        TextView t = Ui.text(a, "Calories nettes : le repos, déjà compté dans le métabolisme, est déduit. Elles s'ajoutent à ton objectif "
+                + "du jour. Hors sport, ta dépense est d'environ " + Fmt.kg(rest.expenditure) + " kcal par jour.", 12, Ui.MUTED);
         t.setPadding(0, Ui.dp(8), 0, 0);
         card.addView(t);
         return card;

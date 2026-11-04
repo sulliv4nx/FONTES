@@ -10,8 +10,8 @@ android {
         applicationId = "com.fonte.carnet"
         minSdk = 26          // Android 8.0 et plus
         targetSdk = 34
-        versionCode = 6
-        versionName = "4.1"
+        versionCode = 8
+        versionName = "4.3"
         // Téléphones Android (ARM) uniquement : APK plus léger avec la lecture de texte.
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")

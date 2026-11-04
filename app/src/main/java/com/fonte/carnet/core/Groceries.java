@@ -193,11 +193,11 @@ public final class Groceries {
                     "rougail_saucisse", "saucisse", "riz_blanc", "riz_complet", "pates", "pates_completes", "quinoa",
                     "semoule", "pdt", "patate_douce", "lentilles", "pois_chiches", "haricots_rouges", "grains", "mais"};
             double[] g = {300, 300, 300, 250, 240, 200, 45,
-                    60, 160, 400, 400, 400, 100, 90, 120,
-                    45, 240, 60, 20, 15, 30, 30, 30, 30,
-                    100, 30, 300, 250, 250, 250, 300, 300, 350,
-                    280, 150, 400, 400, 400, 400, 350,
-                    350, 500, 450, 300, 250, 250, 200, 150};
+                    60, 160, 400, 400, 400, 130, 110, 160,
+                    60, 360, 60, 25, 15, 30, 30, 30, 30,
+                    100, 30, 300, 300, 300, 250, 300, 300, 350,
+                    280, 150, 600, 600, 600, 600, 500,
+                    500, 700, 650, 400, 350, 350, 250, 200};
             for (int i = 0; i < ids.length; i++) c.put(ids[i], g[i]);
             caps = c;
         }

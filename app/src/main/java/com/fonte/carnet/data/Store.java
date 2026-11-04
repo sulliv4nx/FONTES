@@ -533,28 +533,106 @@ public final class Store {
         return false;
     }
 
+    /** Séance terminée, WOD ou renfo noté ce jour-là (une séance en cours ne compte pas encore). */
+    public boolean trainedDone(int day) {
+        for (Session s : sessions) if (!s.inProgress() && Days.key(s.start) == day) return true;
+        for (WodResult r : wodResults) if (Days.key(r.date) == day) return true;
+        for (RenfoLog l : renfoLogs) if (Days.key(l.date) == day) return true;
+        return false;
+    }
+
+    /** Dépense nette (repos déduit) des séances et activités d'un jour. */
     public List<Nutrition.Burn> burned(int day) {
         return Nutrition.burned(day, sessions, wodResults, renfoLogs, activities, weightForCalc());
     }
 
-    public int targetKcal() {
-        return Nutrition.target(profile, weightForCalc(), profile.age(System.currentTimeMillis()));
-    }
-
-    public Nutrition.Macros targetMacros() {
-        return Nutrition.macros(profile, weightForCalc(), targetKcal());
+    /** Jour d'entraînement prévu (jours repérés ou choisis dans les réglages). */
+    public boolean plannedTraining(int day) {
+        int mask = Math.max(0, mealPrefs().trainingMask);
+        return (mask & (1 << MealPlanner.weekday(day))) != 0;
     }
 
     /**
-     * Objectifs d'un jour donné : les calories dépensées en séance s'ajoutent à l'objectif, et ce
-     * supplément va aux glucides (protéines et lipides restent fixés en g/kg).
+     * Séance type : moyenne {kcal nettes, minutes} des jours entraînés des 4 dernières semaines,
+     * ou 1 h de musculation s'il n'y a pas d'historique.
      */
+    public int[] typicalSession() {
+        int today = Days.today();
+        int n = 0, k = 0, m = 0;
+        for (int i = 1; i <= 28; i++) {
+            int d = Days.add(today, -i);
+            if (!trainedDone(d)) continue;
+            List<Nutrition.Burn> b = burned(d);
+            n++;
+            k += Nutrition.total(b);
+            m += Nutrition.minutes(b);
+        }
+        if (n == 0) return new int[]{Nutrition.netKcal(Nutrition.MET_MUSCU, weightForCalc(), 60), 60};
+        return new int[]{Math.round(k / (float) n), Math.round(m / (float) n)};
+    }
+
+    private Nutrition.Targets compute(int sessionKcal, int sessionMinutes, boolean planned) {
+        return Nutrition.targets(profile, weightForCalc(), profile.age(System.currentTimeMillis()), bodyFat(),
+                sessionKcal, sessionMinutes, planned);
+    }
+
+    /**
+     * Objectifs d'un jour : jour sans séance + calories nettes des séances notées. Un jour d'entraînement
+     * prévu (aujourd'hui ou plus tard) sans séance notée compte une séance type.
+     */
+    public Nutrition.Targets targets(int day) {
+        List<Nutrition.Burn> b = burned(day);
+        int k = Nutrition.total(b);
+        int m = Nutrition.minutes(b);
+        boolean planned = false;
+        if (!trainedDone(day) && day >= Days.today() && plannedTraining(day)) {
+            int[] s = typicalSession();
+            k += s[0];
+            m += s[1];
+            planned = true;
+        }
+        return compute(k, m, planned);
+    }
+
+    /** Objectifs d'un jour sans séance. */
+    public Nutrition.Targets restTargets() {
+        return compute(0, 0, false);
+    }
+
+    /** Objectifs d'un jour avec une séance type. */
+    public Nutrition.Targets trainingTargets() {
+        int[] s = typicalSession();
+        return compute(s[0], s[1], true);
+    }
+
+    public Nutrition.Macros targetMacros() {
+        return restTargets().macros();
+    }
+
     public Nutrition.Macros targetMacros(int day) {
-        return Nutrition.macros(profile, weightForCalc(), targetKcal() + Nutrition.total(burned(day)));
+        return targets(day).macros();
     }
 
     public int waterTarget(int day) {
-        return Nutrition.water(profile, weightForCalc(), trained(day));
+        return targets(day).water;
+    }
+
+    /** Pente des pesées comparée au rythme visé, avec la correction proposée. */
+    public Nutrition.Trend weightTrend() {
+        return Nutrition.trend(profile, weights, weightForCalc(), Days.today());
+    }
+
+    /** Valide une correction d'après les pesées ; les pesées suivantes repartent de zéro. */
+    public void applyCorrection(int delta) {
+        profile.kcalAdjust = Math.max(-600, Math.min(600, profile.kcalAdjust + delta));
+        profile.adjustDay = Days.today();
+        save();
+    }
+
+    public void resetCorrection() {
+        profile.kcalAdjust = 0;
+        profile.adjustDay = Days.today();
+        save();
     }
 
     // ---------------------------------------------------------------- mes repas
@@ -570,14 +648,21 @@ public final class Store {
         return mealPrefs;
     }
 
+    /** Objectifs d'un jour sans séance, pour le plan de repas. */
     public MealPlanner.Targets mealTargets() {
-        Nutrition.Macros m = targetMacros();
-        return new MealPlanner.Targets(m.kcal, m.protein, m.carbs, m.fat);
+        Nutrition.Targets t = restTargets();
+        return new MealPlanner.Targets(t.kcal, t.protein, t.carbs, t.fat);
+    }
+
+    /** Objectifs d'un jour d'entraînement (séance type), pour le plan de repas. */
+    public MealPlanner.Targets mealTrainingTargets() {
+        Nutrition.Targets t = trainingTargets();
+        return new MealPlanner.Targets(t.kcal, t.protein, t.carbs, t.fat);
     }
 
     public MealPlan generateMealPlan(MealPrefs prefs, int start) {
         mealPrefs = prefs;
-        mealPlan = MealPlanner.generate(prefs, mealTargets(), start, System.nanoTime());
+        mealPlan = MealPlanner.generate(prefs, mealTargets(), mealTrainingTargets(), start, System.nanoTime());
         mealPlan.created = System.currentTimeMillis();
         save();
         return mealPlan;

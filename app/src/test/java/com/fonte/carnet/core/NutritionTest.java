@@ -16,48 +16,175 @@ import org.junit.Test;
 
 public class NutritionTest {
 
+    /** Exemple du document : homme, 30 ans, 1,78 m, 90 kg, 15 % de masse grasse, bureau. */
     private static Profile man() {
         Profile p = new Profile();
         p.sex = Profile.MALE;
         p.birthYear = 1996;
-        p.heightCm = 180;
-        p.activity = 1.375;
+        p.heightCm = 178;
         return p;
     }
 
+    private static final double W = 90, FAT = 15;
+    private static final int AGE = 30, SESSION = 378;
+
     @Test
-    public void bmrAndTargets() {
+    public void bmrEquations() {
         Profile p = man();
-        assertEquals(1780.0, Nutrition.bmr(p, 80, 30), 1e-9);
+        assertEquals(1867.5, Nutrition.mifflin(p, W, AGE), 1e-9);
+        assertEquals(2096.83, Nutrition.tenHaaf(p, W, AGE), 0.01);
+        assertEquals(2183.0, Nutrition.cunningham(Nutrition.leanMass(W, FAT)), 1e-9);
+        assertEquals(2226.25, Nutrition.tenHaafLean(Nutrition.leanMass(W, FAT)), 0.01);
+        // Ten Haaf par défaut ; les équations à masse maigre retombent sur Ten Haaf sans masse grasse.
+        assertEquals(Profile.BMR_TENHAAF, Nutrition.formula(p, FAT));
+        p.bmrFormula = Profile.BMR_CUNNINGHAM;
+        assertEquals(Profile.BMR_CUNNINGHAM, Nutrition.formula(p, FAT));
+        assertEquals(Profile.BMR_TENHAAF, Nutrition.formula(p, 0));
+        assertEquals(2096.83, Nutrition.bmr(p, W, AGE, 0), 0.01);
         Profile w = new Profile();
         w.sex = Profile.FEMALE;
         w.heightCm = 165;
-        assertEquals(1330.25, Nutrition.bmr(w, 60, 28), 1e-9);
-        assertEquals(2448, Nutrition.maintenance(p, 80, 30));
-        p.goal = Profile.LOSE;
-        assertEquals(1960, Nutrition.target(p, 80, 30));
-        p.goal = Profile.GAIN;
-        assertEquals(2690, Nutrition.target(p, 80, 30));
-        p.kcalOverride = 2500;
-        assertEquals(2500, Nutrition.target(p, 80, 30));
+        assertEquals(1330.25, Nutrition.mifflin(w, 60, 28), 1e-9);
+        assertEquals(1487.58, Nutrition.tenHaaf(w, 60, 28), 0.01);
+        // 60 min de musculation (5 MET) pour 90 kg : 378 kcal nettes, 473 brutes.
+        assertEquals(378, Nutrition.netKcal(Nutrition.MET_MUSCU, W, 60));
+        assertEquals(473, Nutrition.kcal(Nutrition.MET_MUSCU, W, 60));
     }
 
     @Test
-    public void macrosAndWater() {
+    public void maintenanceExample() {
         Profile p = man();
-        Nutrition.Macros m = Nutrition.macros(p, 80, 1960);
-        assertEquals(160, m.protein);
-        assertEquals(72, m.fat);
-        assertEquals(168, m.carbs);
-        assertEquals(2800, Nutrition.water(p, 80, false));
-        assertEquals(3300, Nutrition.water(p, 80, true));
+        Nutrition.Targets rest = Nutrition.targets(p, W, AGE, FAT, 0, 0, false);
+        assertEquals(2097, rest.bmr);
+        assertEquals(2936, rest.expenditure);
+        assertEquals(0, rest.goalKcal);
+        assertEquals(2940, rest.base);
+        assertEquals(2940, rest.kcal);
+        assertEquals(180, rest.protein);
+        assertEquals(82, rest.fat);
+        assertEquals(371, rest.carbs);
+        Nutrition.Targets train = Nutrition.targets(p, W, AGE, FAT, SESSION, 60, false);
+        assertEquals(380, train.sessionKcal);
+        assertEquals(3320, train.kcal);
+        assertEquals(180, train.protein);
+        assertEquals(82, train.fat);
+        assertEquals(466, train.carbs);
+        // Eau : 35 ml/kg, +500 ml par heure de séance.
+        assertEquals(3150, rest.water);
+        assertEquals(3650, train.water);
+        assertEquals(3400, Nutrition.water(p, W, 30));
+    }
+
+    @Test
+    public void gainAndLossExamples() {
+        Profile p = man();
+        p.goal = Profile.GAIN;
+        p.gainRate = 0.35;
+        Nutrition.Targets gain = Nutrition.targets(p, W, AGE, FAT, 0, 0, false);
+        assertEquals(346, gain.goalKcal); // 0,315 kg × 1 100 kcal
+        assertEquals(3280, gain.kcal);
+        assertEquals(180, gain.protein);
+        assertEquals(91, gain.fat);
+        assertTrue(gain.carbs / W >= 4.5);
+        p.goal = Profile.LOSE;
+        p.lossRate = 0.75;
+        Nutrition.Targets loss = Nutrition.targets(p, W, AGE, FAT, 0, 0, false);
+        assertEquals(-742, loss.goalKcal);
+        assertEquals(2190, loss.kcal);
+        // Sèche : 2,6 g par kg de masse maigre (76,5 kg).
+        assertTrue(loss.proteinLean);
+        assertEquals(199, loss.protein);
+        assertEquals(61, loss.fat);
+        assertEquals(211, loss.carbs);
+        // Sans masse grasse : 2,2 g par kg de poids.
+        Nutrition.Targets noFat = Nutrition.targets(p, W, AGE, 0, 0, 0, false);
+        assertFalse(noFat.proteinLean);
+        assertEquals(198, noFat.protein);
+        // Jamais sous le métabolisme de base.
+        p.lossRate = 1.0;
+        p.daily = 1.2;
+        Nutrition.Targets low = Nutrition.targets(p, W, AGE, FAT, 0, 0, false);
+        assertTrue(low.floored);
+        assertEquals(2100, low.kcal);
+    }
+
+    @Test
+    public void limitsAndModes() {
+        Profile p = man();
+        // Lipides : jamais sous 0,5 g/kg, même à 20 %.
+        p.fatPct = 20;
+        p.kcalOverride = 1800;
+        Nutrition.Targets t = Nutrition.targets(p, W, AGE, FAT, SESSION, 60, false);
+        assertTrue(t.imposed);
+        assertEquals(1800, t.kcal);
+        assertEquals(0, t.sessionKcal);
+        assertEquals(45, t.fat);
+        assertEquals(180, t.protein);
+        assertEquals(169, t.carbs);
+        // Correction d'après les pesées.
+        p.kcalOverride = 0;
+        p.fatPct = 25;
+        p.kcalAdjust = -150;
+        assertEquals(2790, Nutrition.targets(p, W, AGE, FAT, 0, 0, false).kcal);
+        p.kcalAdjust = 0;
+        // Mode pourcentages (article) : « Prise de muscle » 40 / 50 / 10.
+        p.method = Profile.METHOD_PERCENT;
+        p.split = "muscle";
+        Nutrition.Targets pct = Nutrition.targets(p, W, AGE, FAT, 0, 0, false);
+        assertEquals(294, pct.protein);
+        assertEquals(368, pct.carbs);
+        assertEquals(33, pct.fat);
+        // Personnalisée : le total est ramené à 100 %.
+        p.split = Profile.SPLIT_CUSTOM;
+        p.pctProtein = 30;
+        p.pctCarbs = 50;
+        p.pctFat = 30;
+        assertEquals(27, p.percents()[0]);
+        assertEquals(45, p.percents()[1]);
+        assertEquals(28, p.percents()[2]);
         p.waterOverride = 2000;
-        assertEquals(2000, Nutrition.water(p, 80, true));
+        assertEquals(2000, Nutrition.water(p, W, 60));
+    }
+
+    private static BodyLog.Weight weigh(int day, double kg) {
+        BodyLog.Weight w = new BodyLog.Weight();
+        w.day = day;
+        w.kg = kg;
+        return w;
+    }
+
+    @Test
+    public void weightTrend() {
+        int today = Days.key(1_800_000_000_000L);
+        Profile p = man();
+        p.goal = Profile.LOSE;
+        p.lossRate = 0.75;
+        List<BodyLog.Weight> list = new ArrayList<>();
+        // Perte de 0,2 kg par semaine au lieu de 0,675 visé : il faut baisser de 200 kcal (écart ≈ 520 kcal/j).
+        for (int i = 0; i <= 21; i += 3) list.add(weigh(Days.add(today, -i), 90 + 0.2 * i / 7.0));
+        Nutrition.Trend t = Nutrition.trend(p, list, 90, today);
+        assertTrue(t.ready());
+        assertEquals(-0.2, t.kgPerWeek, 0.01);
+        assertEquals(-0.675, t.expected, 1e-9);
+        assertEquals(-200, t.suggestion);
+        // Rythme tenu : rien à corriger.
+        list.clear();
+        for (int i = 0; i <= 21; i += 3) list.add(weigh(Days.add(today, -i), 90 + 0.68 * i / 7.0));
+        assertEquals(0, Nutrition.trend(p, list, 90, today).suggestion);
+        // Maintien mais poids qui baisse de 0,15 kg/sem (≈ 165 kcal/j) : +150 kcal.
+        p.goal = Profile.MAINTAIN;
+        list.clear();
+        for (int i = 0; i <= 21; i += 3) list.add(weigh(Days.add(today, -i), 90 + 0.15 * i / 7.0));
+        assertEquals(150, Nutrition.trend(p, list, 90, today).suggestion);
+        // Pas assez de pesées, ou pesées d'avant la dernière correction : pas de proposition.
+        p.adjustDay = Days.add(today, -10);
+        Nutrition.Trend few = Nutrition.trend(p, list, 90, today);
+        assertFalse(few.ready());
+        assertEquals(0, few.suggestion);
     }
 
     @Test
     public void burnedCalories() {
-        assertEquals(420, Nutrition.kcal(5.0, 80, 60));
         int day = Days.key(1_700_000_000_000L);
         Session s = new Session();
         s.id = 1;
@@ -75,7 +202,9 @@ public class NutritionTest {
         a.kcal = 300;
         List<Nutrition.Burn> b = Nutrition.burned(day, Arrays.asList(s), Arrays.asList(r), new ArrayList<>(), Arrays.asList(a), 80);
         assertEquals(3, b.size());
-        assertEquals(420 + Nutrition.kcal(8.0, 80, 5) + 300, Nutrition.total(b));
+        assertEquals(Nutrition.netKcal(5.0, 80, 60) + Nutrition.netKcal(8.0, 80, 5) + 300, Nutrition.total(b));
+        assertEquals(336, Nutrition.netKcal(5.0, 80, 60));
+        assertEquals(95, Nutrition.minutes(b));
         assertTrue(Nutrition.burned(Days.add(day, 1), Arrays.asList(s), Arrays.asList(r), new ArrayList<>(), Arrays.asList(a), 80).isEmpty());
     }
 

@@ -91,10 +91,18 @@ public class MealPlan {
     public int days = 7;
     public long seed;
     public long created;
+    /** Objectifs d'un jour sans séance. */
     public int kcal;
     public int protein;
     public int carbs;
     public int fat;
+    /** Objectifs d'un jour d'entraînement (0 = comme un jour sans séance). */
+    public int trainKcal;
+    public int trainProtein;
+    public int trainCarbs;
+    public int trainFat;
+    /** Jours d'entraînement prévus (bit 0 = lundi) au moment du calcul. */
+    public int trainingMask;
     public final List<Meal> meals = new ArrayList<>();
     /** Articles cochés dans la liste de courses (identifiants d'aliments). */
     public final Set<String> checked = new LinkedHashSet<>();
@@ -163,6 +171,17 @@ public class MealPlan {
             default:
                 return 20;
         }
+    }
+
+    /** Jour d'entraînement prévu dans ce plan. */
+    public boolean trainingDay(int day) {
+        return trainKcal > 0 && (trainingMask & (1 << MealPlanner.weekday(day))) != 0;
+    }
+
+    /** Objectifs du jour {kcal, protéines, glucides, lipides}. */
+    public int[] targetsOn(int day) {
+        if (trainingDay(day)) return new int[]{trainKcal, trainProtein, trainCarbs, trainFat};
+        return new int[]{kcal, protein, carbs, fat};
     }
 
     public int end() {

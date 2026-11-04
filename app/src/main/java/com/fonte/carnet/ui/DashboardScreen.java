@@ -93,10 +93,9 @@ public class DashboardScreen extends Screen {
 
     private View nutritionCard(int day) {
         Nutrition.Totals t = Nutrition.totals(st.foodEntries, day, null);
-        int burned = Nutrition.total(st.burned(day));
-        int target = st.targetKcal();
-        int goal = target + burned;
-        Nutrition.Macros m = st.targetMacros(day);
+        Nutrition.Targets target = st.targets(day);
+        int goal = target.kcal;
+        Nutrition.Macros m = target.macros();
         LinearLayout card = Ui.clickCard(a, v -> a.goTab(MainActivity.TAB_NUTRITION));
         card.addView(Ui.cardHeader(a, Icon.NUTRITION, Ui.ACCENT, "Nutrition du jour", "Journal",
                 v -> a.goTab(MainActivity.TAB_NUTRITION)));
@@ -114,7 +113,8 @@ public class DashboardScreen extends Screen {
         row.addView(macros, Ui.weight(1));
         card.addView(row);
         TextView sum = Ui.text(a, Fmt.kg(Math.round(t.kcal)) + " kcal consommées sur " + Fmt.kg(goal)
-                + " (objectif " + Fmt.kg(target) + (burned > 0 ? " + " + burned + " d'activité" : "") + ")", 12, Ui.MUTED);
+                + " (" + st.profile.goalLabel().toLowerCase(java.util.Locale.FRENCH)
+                + (target.sessionKcal > 0 ? (target.planned ? ", séance prévue comprise" : ", séances comprises") : "") + ")", 12, Ui.MUTED);
         sum.setPadding(0, Ui.dp(8), 0, 0);
         card.addView(sum);
         card.addView(Ui.button(a, "Ajouter un repas", Ui.SECONDARY,
@@ -172,8 +172,7 @@ public class DashboardScreen extends Screen {
         LinearLayout card = Ui.card(a);
         card.addView(Ui.cardHeader(a, Icon.FLAME, Ui.BURN, "Dépense", null, null));
         card.addView(Ui.bigValue(a, total + " kcal", burns.isEmpty() ? "aucune activité" : Fmt.plural(burns.size(), "activité")));
-        TextView base = Ui.text(a, "+ " + Fmt.kg(Nutrition.maintenance(st.profile, st.weightForCalc(),
-                st.profile.age(System.currentTimeMillis()))) + " kcal de métabolisme", 12, Ui.MUTED);
+        TextView base = Ui.text(a, "Calories nettes, ajoutées à ton objectif du jour", 12, Ui.MUTED);
         base.setPadding(0, Ui.dp(8), 0, Ui.dp(4));
         card.addView(base);
         card.addView(new View(a), new LinearLayout.LayoutParams(1, 0, 1));
