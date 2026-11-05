@@ -347,12 +347,11 @@ public class MainActivity extends Activity {
         content.addView(v, new FrameLayout.LayoutParams(-1, -1));
         updateHeader();
         for (int i = 0; i < TABS; i++) {
-            int color = i == tab ? Ui.ACCENT : Ui.MUTED;
-            tabIcons[i].setColor(color);
-            tabLabels[i].setTextColor(color);
+            tabIcons[i].setColor(i == tab ? Ui.FLUO : Ui.MUTED);
+            tabLabels[i].setTextColor(i == tab ? Ui.TEXT : Ui.MUTED);
             tabButtons[i].setSelected(i == tab);
             tabButtons[i].setBackground(Ui.pressable(
-                    Ui.rect(i == tab ? Ui.ACCENT_SOFT : Color.TRANSPARENT, 12), 12));
+                    Ui.rect(i == tab ? Ui.SURFACE2 : Color.TRANSPARENT, 12), 12));
         }
         refreshKeepScreenOn();
         safeTick(s);

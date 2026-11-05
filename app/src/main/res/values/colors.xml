@@ -2,7 +2,7 @@
 <resources>
     <color name="bg">#FF141416</color>
     <color name="surface">#FF1E1E22</color>
-    <color name="accent">#FFFF2E93</color>
+    <color name="accent">#FFD4FF2A</color>
     <color name="fluo">#FFD4FF2A</color>
     <color name="text">#FFF4F4F6</color>
 </resources>

@@ -30,7 +30,7 @@ public final class Ui {
     private Ui() {
     }
 
-    // Palette Paradoxe (4.6) : charcoal et blanc, rose électrique pour les touches, jaune fluo pour le logo et l'anneau.
+    // Palette Paradoxe (4.6) : charcoal et blanc ; jaune fluo pour le logo, les icônes et l'anneau ; rose pour les protéines.
     public static final int BG = 0xFF141416;
     public static final int SURFACE = 0xFF1E1E22;
     public static final int SURFACE2 = 0xFF2B2B31;
@@ -38,17 +38,19 @@ public final class Ui {
     public static final int TEXT = 0xFFF4F4F6;
     public static final int MUTED = 0xFFB8B8C2;
     public static final int FAINT = 0xFF8B8B97;
-    /** Rose électrique : liens, heures, sélections. */
-    public static final int ACCENT = 0xFFFF2E93;
-    public static final int ACCENT_SOFT = 0x29FF2E93;
-    /** Jaune fluo : logo et anneau des calories, avec parcimonie. */
+    /** Sélections, liens et heures : blanc (les couleurs vives restent rares). */
+    public static final int ACCENT = 0xFFF4F4F6;
+    public static final int ACCENT_SOFT = 0x1FF4F4F6;
+    /** Jaune fluo : logo, icônes et anneau des calories. */
     public static final int FLUO = 0xFFD4FF2A;
     public static final int FLUO_SOFT = 0x26D4FF2A;
+    /** Rose électrique : touches (protéines). */
+    public static final int PINK = 0xFFFF2E93;
     public static final int OK = 0xFF85DBA1;
     public static final int OK_SOFT = 0x2685DBA1;
     public static final int DANGER = 0xFFFF6B7A;
     /** Couleurs de données (macros, eau, dépense). */
-    public static final int PROTEIN = 0xFFFF5CA8;
+    public static final int PROTEIN = 0xFFFF4FA3;
     public static final int CARBS = 0xFFFFB547;
     public static final int FAT = 0xFF9DAEFF;
     public static final int WATER = 0xFF5BC0FF;
@@ -140,9 +142,11 @@ public final class Ui {
     /** Petite pastille d'icône (carré arrondi teinté). */
     public static View iconBadge(Context c, int icon, int color) {
         android.widget.FrameLayout f = new android.widget.FrameLayout(c);
-        f.setBackground(rect((color & 0x00FFFFFF) | 0x26000000, 12));
+        // Icônes de l'appli en jaune fluo sur gris ; les couleurs de données (eau, dépense…) gardent leur teinte.
+        boolean app = color == ACCENT || color == FLUO;
+        f.setBackground(rect(app ? SURFACE2 : (color & 0x00FFFFFF) | 0x26000000, 12));
         ImageView iv = new ImageView(c);
-        iv.setImageDrawable(new Icon(icon, color));
+        iv.setImageDrawable(new Icon(icon, app ? FLUO : color));
         f.addView(iv, new android.widget.FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER));
         f.setLayoutParams(lp(dp(40), dp(40)));
         return f;
@@ -158,7 +162,8 @@ public final class Ui {
         t.setPadding(dp(12), 0, dp(8), 0);
         h.addView(t, weight(1));
         if (action != null) {
-            TextView a = medium(c, action, 14, ACCENT);
+            TextView a = medium(c, action, 14, TEXT);
+            a.setPaintFlags(a.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
             a.setPadding(dp(10), dp(8), 0, dp(8));
             a.setOnClickListener(l);
             h.addView(a);
@@ -686,8 +691,8 @@ public final class Ui {
         android.widget.Switch sw = new android.widget.Switch(c);
         sw.setChecked(on);
         int[][] states = {{android.R.attr.state_checked}, {}};
-        sw.setThumbTintList(new ColorStateList(states, new int[]{ACCENT, MUTED}));
-        sw.setTrackTintList(new ColorStateList(states, new int[]{0x8069E6D2, SURFACE2}));
+        sw.setThumbTintList(new ColorStateList(states, new int[]{FLUO, MUTED}));
+        sw.setTrackTintList(new ColorStateList(states, new int[]{0x80D4FF2A, SURFACE2}));
         sw.setContentDescription(title);
         sw.setOnCheckedChangeListener((b, v) -> cb.accept(v));
         r.addView(sw);

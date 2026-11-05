@@ -2,7 +2,7 @@
 
 (Anciennement « Fonte », puis « Paradoxe Training ». Le nom affiché change, l'identifiant `com.fonte.carnet` reste : chaque version s'installe par-dessus et garde les données.)
 
-Icône : le logo PRDX de la marque Paradoxe, en jaune fluo sur charcoal. Style : fond charcoal, boutons blancs, rose électrique pour les heures, les liens et les protéines, jaune fluo pour l'anneau des calories.
+Icône : le logo PRDX de la marque Paradoxe, en jaune fluo sur charcoal. Style : fond charcoal, boutons et sélections en blanc, icônes et anneau des calories en jaune fluo, rose électrique pour les protéines.
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
