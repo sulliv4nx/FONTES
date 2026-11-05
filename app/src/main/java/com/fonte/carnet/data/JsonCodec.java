@@ -33,7 +33,7 @@ final class JsonCodec {
 
     static JSONObject write(Store s) throws JSONException {
         JSONObject o = new JSONObject();
-        o.put("app", "Paradoxe Training");
+        o.put("app", "Paradoxe Training Assistant");
         o.put("version", VERSION);
         o.put("nextId", s.nextId);
         o.put("nextExerciseId", s.nextExerciseId);
@@ -213,6 +213,12 @@ final class JsonCodec {
             j.put("name", a.name);
             j.put("minutes", a.minutes);
             j.put("kcal", a.kcal);
+            if (a.kind != null) j.put("kind", a.kind);
+            if (a.intensity >= 0) j.put("intensity", a.intensity);
+            if (a.meters > 0) j.put("meters", a.meters);
+            if (a.shownKcal > 0) j.put("shownKcal", a.shownKcal);
+            if (a.sport != null) j.put("sport", a.sport);
+            if (a.sessionId != 0) j.put("sessionId", a.sessionId);
             acts.put(j);
         }
         o.put("activities", acts);
@@ -343,7 +349,8 @@ final class JsonCodec {
     private static void writeDay(Store s, JSONObject o) throws JSONException {
         com.fonte.carnet.core.DayPrefs p = s.dayPrefs;
         JSONObject j = new JSONObject();
-        j.put("dayMode", p.dayMode);
+        // Clé « dayType » depuis la 4.6 : la journée type devient le mode par défaut, même après la 4.5.
+        j.put("dayType", p.dayMode);
         j.put("wake", p.wake);
         j.put("training", p.training);
         j.put("meals", p.meals);
@@ -395,7 +402,7 @@ final class JsonCodec {
         JSONObject j = o.optJSONObject("dayPrefs");
         com.fonte.carnet.core.DayPrefs p = new com.fonte.carnet.core.DayPrefs();
         if (j != null) {
-            p.dayMode = j.optBoolean("dayMode", false);
+            p.dayMode = j.optBoolean("dayType", true);
             int wake = j.optInt("wake", p.wake);
             if (wake >= 0 && wake < 1440) p.wake = wake;
             int training = j.optInt("training", p.training);
@@ -653,6 +660,12 @@ final class JsonCodec {
                 a.name = j.optString("name", "Activité");
                 a.minutes = Math.max(0, j.optInt("minutes", 0));
                 a.kcal = Math.max(0, j.optInt("kcal", 0));
+                a.kind = j.has("kind") ? j.optString("kind", null) : null;
+                a.intensity = Math.max(-1, Math.min(2, j.optInt("intensity", -1)));
+                a.meters = Math.max(0, j.optInt("meters", 0));
+                a.shownKcal = Math.max(0, j.optInt("shownKcal", 0));
+                a.sport = j.has("sport") ? j.optString("sport", null) : null;
+                a.sessionId = j.optLong("sessionId", 0);
                 s.activities.add(a);
                 s.nextId = Math.max(s.nextId, a.id + 1);
             }
@@ -734,7 +747,7 @@ final class JsonCodec {
 
     static void read(Store s, JSONObject o) throws JSONException {
         if (o.optInt("version", 0) < 1 || !o.has("sessions")) {
-            throw new JSONException("Ce fichier n'est pas une sauvegarde Paradoxe Training.");
+            throw new JSONException("Ce fichier n'est pas une sauvegarde Paradoxe Training Assistant.");
         }
         s.nextId = Math.max(1, o.optLong("nextId", 1));
         s.nextExerciseId = Math.max(Library.FIRST_CUSTOM_ID, o.optLong("nextExerciseId", Library.FIRST_CUSTOM_ID));

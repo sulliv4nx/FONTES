@@ -106,7 +106,7 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "À propos"));
         LinearLayout about = Ui.card(a);
-        about.addView(Ui.medium(a, "Paradoxe Training 4.5", 16, Ui.TEXT));
+        about.addView(Ui.medium(a, "Paradoxe Training Assistant 4.6", 16, Ui.TEXT));
         about.addView(Ui.text(a, st.sessions.size() + " séances de muscu · "
                 + Fmt.plural(st.wodResults.size(), "score") + " de WOD · "
                 + st.renfoLogs.size() + " circuits de renfo · "

@@ -279,7 +279,7 @@ public final class Store {
         if (s == null) return null;
         current = null;
         s.dropUndone();
-        if (s.exercises.isEmpty()) {
+        if (s.exercises.isEmpty() && cardio(s.id).isEmpty()) {
             save();
             return null;
         }
@@ -294,12 +294,14 @@ public final class Store {
     }
 
     public void cancelCurrent() {
+        if (current != null) removeCardio(current.id);
         current = null;
         save();
     }
 
     public void deleteSession(Session s) {
         sessions.remove(s);
+        removeCardio(s.id);
         if (program != null) for (Program.Day d : program.days) if (d.sessionId == s.id) d.sessionId = 0;
         save();
     }
@@ -541,9 +543,47 @@ public final class Store {
         save();
     }
 
+    // ---------------------------------------------------------------- cardio des séances
+
+    /** Note un cardio (vélo, rameur…) : dans la séance indiquée, ou seul pour CrossFit et Renfo. */
+    public BodyLog.Activity addCardio(BodyLog.Activity a) {
+        if (a.id == 0) a.id = newId();
+        if (a.time == 0) a.time = System.currentTimeMillis();
+        if (a.day == 0) a.day = Days.key(a.time);
+        if (!activities.contains(a)) activities.add(a);
+        save();
+        return a;
+    }
+
+    /** Cardio d'une séance de musculation, dans l'ordre où il a été noté. */
+    public List<BodyLog.Activity> cardio(long sessionId) {
+        List<BodyLog.Activity> l = new ArrayList<>();
+        if (sessionId == 0) return l;
+        for (BodyLog.Activity a : activities) if (a.sessionId == sessionId) l.add(a);
+        java.util.Collections.sort(l, (x, y) -> Long.compare(x.time, y.time));
+        return l;
+    }
+
+    /** Cardio noté seul (CrossFit, Renfo ou muscu hors séance), du plus récent au plus ancien. */
+    public List<BodyLog.Activity> cardioAlone(String sport) {
+        List<BodyLog.Activity> l = new ArrayList<>();
+        for (BodyLog.Activity a : activities) {
+            if (!a.training() || a.sessionId != 0) continue;
+            if (sport == null || sport.equals(a.sport)) l.add(a);
+        }
+        java.util.Collections.sort(l, (x, y) -> Long.compare(y.time, x.time));
+        return l;
+    }
+
+    private void removeCardio(long sessionId) {
+        if (sessionId == 0) return;
+        for (int i = activities.size() - 1; i >= 0; i--) if (activities.get(i).sessionId == sessionId) activities.remove(i);
+    }
+
     /** Séance, WOD ou renfo ce jour-là. */
     public boolean trained(int day) {
         for (Session s : sessions) if (Days.key(s.start) == day) return true;
+        for (BodyLog.Activity a : activities) if (a.training() && a.sessionId == 0 && a.day == day) return true;
         for (WodResult r : wodResults) if (Days.key(r.date) == day) return true;
         for (RenfoLog l : renfoLogs) if (Days.key(l.date) == day) return true;
         return false;
@@ -552,6 +592,7 @@ public final class Store {
     /** Séance terminée, WOD ou renfo noté ce jour-là (une séance en cours ne compte pas encore). */
     public boolean trainedDone(int day) {
         for (Session s : sessions) if (!s.inProgress() && Days.key(s.start) == day) return true;
+        for (BodyLog.Activity a : activities) if (a.training() && a.sessionId == 0 && a.day == day) return true;
         for (WodResult r : wodResults) if (Days.key(r.date) == day) return true;
         for (RenfoLog l : renfoLogs) if (Days.key(l.date) == day) return true;
         return false;

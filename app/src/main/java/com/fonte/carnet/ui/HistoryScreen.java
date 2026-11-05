@@ -57,10 +57,15 @@ public class HistoryScreen extends Screen {
         if (ALL.equals(filter) || MUSCU.equals(filter)) for (Session s : st.sessions) entries.add(new Entry(s.start, s));
         if (ALL.equals(filter) || WOD.equals(filter)) for (WodResult r : st.wodResults) entries.add(new Entry(r.date, r));
         if (ALL.equals(filter) || RENFO.equals(filter)) for (RenfoLog l : st.renfoLogs) entries.add(new Entry(l.date, l));
+        for (com.fonte.carnet.core.BodyLog.Activity x : st.cardioAlone(null)) {
+            String sp = com.fonte.carnet.core.Cardio.CROSSFIT.equals(x.sport) ? WOD
+                    : com.fonte.carnet.core.Cardio.RENFO.equals(x.sport) ? RENFO : MUSCU;
+            if (ALL.equals(filter) || sp.equals(filter)) entries.add(new Entry(x.time, x));
+        }
         Collections.sort(entries, (x, y) -> Long.compare(y.date, x.date));
 
         if (entries.isEmpty()) {
-            TextView t = Ui.text(a, "Rien pour l'instant. Tes séances, WOD et circuits terminés apparaîtront ici.", 15, Ui.MUTED);
+            TextView t = Ui.text(a, "Rien pour l'instant. Tes séances, WOD, circuits et cardios apparaîtront ici.", 15, Ui.MUTED);
             t.setPadding(0, Ui.dp(12), 0, 0);
             c.addView(t);
             return Ui.page(a, c);
@@ -76,6 +81,8 @@ public class HistoryScreen extends Screen {
             }
             if (e.item instanceof Session) c.addView(sessionCard((Session) e.item));
             else if (e.item instanceof WodResult) c.addView(wodCard((WodResult) e.item));
+            else if (e.item instanceof com.fonte.carnet.core.BodyLog.Activity)
+                c.addView(CardioSheet.row(a, (com.fonte.carnet.core.BodyLog.Activity) e.item, true, a::refresh));
             else c.addView(renfoCard((RenfoLog) e.item));
         }
         if (entries.size() > limit) {
@@ -100,10 +107,12 @@ public class HistoryScreen extends Screen {
         header(card, s.name, s.records.isEmpty() ? "Muscu" : Fmt.plural(s.records.size(), "record"),
                 s.records.isEmpty() ? Ui.MUTED : Ui.ACCENT, s.records.isEmpty() ? Ui.SURFACE2 : Ui.ACCENT_SOFT);
         card.addView(Ui.text(a, Fmt.day(s.start), 13, Ui.MUTED));
-        TextView stats = Ui.text(a, Fmt.duration(s.durationMs()) + " · "
-                + Fmt.plural(s.exercises.size(), "exercice") + " · "
-                + Fmt.plural(s.doneSets(), "série") + " · "
-                + Fmt.tonnage(s.tonnage()), 13, Ui.MUTED);
+        int cardio = 0;
+        for (com.fonte.carnet.core.BodyLog.Activity x : st.cardio(s.id)) cardio += x.minutes;
+        String detail = s.exercises.isEmpty() ? "" : " · " + Fmt.plural(s.exercises.size(), "exercice") + " · "
+                + Fmt.plural(s.doneSets(), "série") + " · " + Fmt.tonnage(s.tonnage());
+        TextView stats = Ui.text(a, Fmt.duration(s.durationMs()) + detail + (cardio > 0 ? " · cardio " + cardio + " min" : ""),
+                13, Ui.MUTED);
         stats.setPadding(0, Ui.dp(2), 0, 0);
         card.addView(stats);
         return card;

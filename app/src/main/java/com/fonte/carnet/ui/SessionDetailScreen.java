@@ -83,6 +83,12 @@ public class SessionDetailScreen extends Screen {
             c.addView(card);
         }
 
+        java.util.List<com.fonte.carnet.core.BodyLog.Activity> cardio = st.cardio(s.id);
+        if (!cardio.isEmpty()) {
+            c.addView(Ui.section(a, "Cardio"));
+            for (com.fonte.carnet.core.BodyLog.Activity x : cardio) c.addView(CardioSheet.row(a, x, false, a::refresh));
+        }
+        c.addView(Ui.button(a, "+ Cardio / ergo", Ui.GHOST, v -> CardioSheet.add(a, com.fonte.carnet.core.Cardio.MUSCU, s.id, a::refresh)));
         c.addView(Ui.button(a, "Refaire cette séance", Ui.SECONDARY,
                 v -> a.startSession(s.name, s.exercises, 0, -1)));
         return Ui.page(a, c);

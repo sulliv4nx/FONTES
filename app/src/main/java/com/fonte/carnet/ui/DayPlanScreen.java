@@ -29,9 +29,9 @@ import java.util.Locale;
 public class DayPlanScreen extends ScrollScreen {
     static final int SESSION_TEXT = 0xFFFFB38A;
     static final int SESSION_BG = 0x1FFF8F5A;
-    private static final int ROLE_CARBS = 0xFFFFC66B;
-    private static final int ROLE_PROTEIN = 0xFF9DBAFF;
-    private static final int ROLE_FAT = 0xFFFF9DB6;
+    private static final int ROLE_CARBS = 0xFFFFB547;
+    private static final int ROLE_PROTEIN = 0xFFFF7DBA;
+    private static final int ROLE_FAT = 0xFFA9B8FF;
     private static final int ROLE_PLANT = 0xFF85DBA1;
 
     private int day;

@@ -485,9 +485,11 @@ public class MainActivity extends Activity {
             return;
         }
         StringBuilder m = new StringBuilder();
-        m.append(Fmt.duration(s.durationMs())).append(" · ")
-                .append(Fmt.plural(s.doneSets(), "série")).append(" · ")
-                .append(Fmt.tonnage(s.tonnage()));
+        m.append(Fmt.duration(s.durationMs()));
+        if (s.doneSets() > 0) m.append(" · ").append(Fmt.plural(s.doneSets(), "série")).append(" · ").append(Fmt.tonnage(s.tonnage()));
+        for (com.fonte.carnet.core.BodyLog.Activity c : store.cardio(s.id)) {
+            m.append("\n").append(c.name).append(" : ").append(com.fonte.carnet.core.Cardio.summary(c));
+        }
         if (!s.records.isEmpty()) {
             m.append("\n\n🏆 Records battus :");
             for (String r : s.records) m.append("\n• ").append(r);
@@ -504,7 +506,7 @@ public class MainActivity extends Activity {
         Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
         i.setType("application/json");
-        i.putExtra(Intent.EXTRA_TITLE, "paradoxe-training-sauvegarde-" + Fmt.isoDate(System.currentTimeMillis()) + ".json");
+        i.putExtra(Intent.EXTRA_TITLE, "paradoxe-training-assistant-sauvegarde-" + Fmt.isoDate(System.currentTimeMillis()) + ".json");
         try {
             startActivityForResult(i, REQ_EXPORT);
         } catch (ActivityNotFoundException e) {

@@ -1,6 +1,8 @@
-# Paradoxe Training 4.5 — sport, nutrition et suivi corporel pour Android
+# Paradoxe Training Assistant 4.6 — sport, nutrition et suivi corporel pour Android
 
-(Anciennement « Fonte ». Le nom affiché change, l'identifiant `com.fonte.carnet` reste : la 4.5 s'installe par-dessus et garde les données.)
+(Anciennement « Fonte », puis « Paradoxe Training ». Le nom affiché change, l'identifiant `com.fonte.carnet` reste : chaque version s'installe par-dessus et garde les données.)
+
+Icône : le logo PRDX de la marque Paradoxe, en jaune fluo sur charcoal. Style : fond charcoal, boutons blancs, rose électrique pour les heures, les liens et les protéines, jaune fluo pour l'anneau des calories.
 
 Appli d'entraînement hors ligne, en français, thème sombre. Aucune pub, aucun compte : les données restent sur le téléphone.
 
@@ -34,7 +36,7 @@ Le récapitulatif du jour : calories restantes et macros, hydratation, calories 
 - **Calories dépensées** : calories nettes estimées (MET − 1) à partir des séances, WOD et circuits, plus les activités ajoutées (course, vélo…) ou les calories actives de ta montre. Elles s'ajoutent à l'objectif du jour.
 
 ### Mes repas (Nutrition › Mes repas)
-Deux modes, au choix en haut de l'écran : **Plats de la semaine** ou **Journée type**.
+Deux modes, au choix en haut de l'écran : **Journée type** (par défaut depuis la 4.6) ou **Plats de la semaine**.
 
 **Journée type** (version 4.5), sur le principe d'une diète de préparateur :
 - **Repas à heures fixes** calculés d'après l'heure du lever et de la séance (4, 5 ou 6 repas) : le repas d'avant la séance tombe 2 h 30 avant, celui d'après 2 h après, et un fruit 30 minutes avant. Chaque heure peut être fixée à la main.
@@ -60,6 +62,7 @@ Poids (courbe, variations sur 7 et 30 jours, IMC), mensurations (taille, hanches
 
 ### Muscu
 - **Séance libre** ou lancée depuis une séance type, un modèle, une proposition ou la programmation du coach. Tu notes kg × répétitions et tu coches ✓ chaque série terminée. Les charges de la dernière fois sont reprises automatiquement.
+- **Cardio / ergo** (version 4.6) : dans une séance, « + Cardio / ergo » note à la main un vélo d'appartement, un air bike (Assault, Echo), un rameur, un SkiErg, de la course, de la corde à sauter, etc. : durée, intensité (facile, modéré, intense), distance et calories affichées par l'ergo si tu les as. Les calories nettes s'ajoutent au jour sans compter deux fois le temps de muscu. Une séance de cardio seul s'enregistre aussi.
 - **Minuteur de repos** : il démarre quand tu coches une série et vibre à la fin. L'écran reste allumé pendant la séance.
 - **Séances types** : full body A/B, haut/bas, push/pull/legs, bras, fessiers, épaules & abdos, force 5×5, strongman.
 - **Séance par muscle** : tu choisis les muscles (pectoraux, dos, épaules, bras, jambes, abdos…), l'objectif (force, volume, endurance) et ton temps disponible, et l'appli propose une séance.
@@ -71,13 +74,14 @@ Poids (courbe, variations sur 7 et 30 jours, IMC), mensurations (taille, hanches
 - **WOD Heroes** : Murph, DT, JT, Michael, Nate, Randy, Tommy V, Badger, Josh, Daniel, Jason, Ryan, Mr. Joshua, Danny, Hansen, Luce, McGhee, The Seven, Whitten, Bull, Kalsu, Glen, Lumberjack 20…
 - **The Girls** : Fran, Grace, Isabel, Helen, Cindy, Annie, Karen, Diane, Elizabeth, Jackie, Nancy, Amanda, Kelly, Eva, Barbara, Chelsea, Mary, Angie, Nicole.
 - **WOD par objectif** : cardio, gymnastique, haltérophilie, force, jambes, haut du corps, sans matériel, court & intense, long & endurance.
+- **Cardio / ergo** : la tuile du chrono note un vélo, un rameur ou un SkiErg fait à part, avec les mêmes informations qu'en muscu.
 - **Mes WOD** : crée les WOD de ta box. Le chrono adapté et l'enregistrement des scores (temps, tours + reps, RX ou adapté) sont inclus, avec ton record sur chaque WOD.
 
 ### Renfo
-Circuits guidés : gainage & abdos, épaules (coiffe des rotateurs, mobilité), genoux & chevilles, dos & posture, hanches & fessiers, mobilité, full body, prévention course. L'appli enchaîne les exercices, les temps et les pauses ; les exercices en répétitions attendent que tu touches « Fait ✓ ».
+Circuits guidés : gainage & abdos, épaules (coiffe des rotateurs, mobilité), genoux & chevilles, dos & posture, hanches & fessiers, mobilité, full body, prévention course. L'appli enchaîne les exercices, les temps et les pauses ; les exercices en répétitions attendent que tu touches « Fait ✓ ». « + Cardio / ergo » note aussi un vélo ou un rameur fait à côté.
 
 ### Historique et Records
-Historique unifié (muscu, WOD, renfo), filtrable. Records : meilleurs scores de WOD, puis, par exercice, 1RM estimé, charge max, répétitions max et courbe de progression. Le calculateur de max est aussi dans Records.
+Historique unifié (muscu, WOD, renfo, cardio), filtrable. Records : meilleurs scores de WOD, puis, par exercice, 1RM estimé, charge max, répétitions max et courbe de progression. Le calculateur de max est aussi dans Records.
 
 ## Obtenir l'APK
 

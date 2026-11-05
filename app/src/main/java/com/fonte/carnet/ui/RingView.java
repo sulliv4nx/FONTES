@@ -27,7 +27,7 @@ public class RingView extends View {
         arc.setStyle(Paint.Style.STROKE);
         arc.setStrokeWidth(stroke);
         arc.setStrokeCap(Paint.Cap.ROUND);
-        arc.setColor(Ui.ACCENT);
+        arc.setColor(Ui.FLUO);
         big.setColor(Ui.TEXT);
         big.setTypeface(Typeface.DEFAULT_BOLD);
         big.setTextAlign(Paint.Align.CENTER);

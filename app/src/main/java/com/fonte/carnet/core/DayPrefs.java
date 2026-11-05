@@ -11,8 +11,8 @@ import java.util.Set;
 
 /** Réglages de la journée type (diète à équivalences) : horaires, repas, aliments proposés, rappels et règles. */
 public class DayPrefs {
-    /** « Mes repas » affiche la journée type plutôt que les plats de la semaine. */
-    public boolean dayMode;
+    /** « Mes repas » affiche la journée type (par défaut depuis la 4.6) plutôt que les plats de la semaine. */
+    public boolean dayMode = true;
     /** Heure du lever et de la séance habituelle, en minutes depuis minuit. */
     public int wake = 5 * 60 + 45;
     public int training = 18 * 60 + 30;

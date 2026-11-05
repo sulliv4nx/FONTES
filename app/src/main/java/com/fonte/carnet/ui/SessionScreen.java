@@ -117,14 +117,18 @@ public class SessionScreen extends Screen {
         Session s = st.current;
         if (s == null || list == null) return;
         list.removeAllViews();
-        if (s.exercises.isEmpty()) {
+        java.util.List<com.fonte.carnet.core.BodyLog.Activity> cardio = st.cardio(s.id);
+        if (s.exercises.isEmpty() && cardio.isEmpty()) {
             TextView hint = Ui.text(a, "Ajoute ton premier exercice pour commencer. Coche ✓ chaque série terminée : "
-                    + "seules les séries cochées sont enregistrées.", 15, Ui.MUTED);
+                    + "seules les séries cochées sont enregistrées. Du vélo ou un ergo ? Note-le avec « + Cardio / ergo ».", 15, Ui.MUTED);
             hint.setPadding(0, Ui.dp(8), 0, Ui.dp(12));
             list.addView(hint);
         }
         for (int i = 0; i < s.exercises.size(); i++) list.addView(exerciseCard(s, i));
+        for (com.fonte.carnet.core.BodyLog.Activity c : cardio) list.addView(CardioSheet.row(a, c, false, this::refill));
         list.addView(Ui.button(a, "+ Ajouter un exercice", Ui.SECONDARY, v -> ExercisePicker.show(a, this::addExercise)));
+        list.addView(Ui.button(a, "+ Cardio / ergo (vélo, rameur…)", Ui.GHOST,
+                v -> CardioSheet.add(a, com.fonte.carnet.core.Cardio.MUSCU, s.id, this::refill)));
         list.addView(Ui.space(a, 6));
         list.addView(Ui.button(a, "Terminer la séance", Ui.PRIMARY, v -> finish()));
     }
@@ -344,7 +348,8 @@ public class SessionScreen extends Screen {
         int done = s.doneSets();
         int total = 0;
         for (ExerciseEntry e : s.exercises) total += e.sets.size();
-        if (done == 0) {
+        int cardio = st.cardio(s.id).size();
+        if (done == 0 && cardio == 0) {
             new AlertDialog.Builder(a)
                     .setTitle("Aucune série cochée")
                     .setMessage("Coche ✓ les séries effectuées pour qu'elles soient enregistrées.")
@@ -354,7 +359,8 @@ public class SessionScreen extends Screen {
             return;
         }
         int undone = total - done;
-        String msg = Fmt.plural(done, "série") + (done > 1 ? " cochées." : " cochée.");
+        String msg = done == 0 ? "Aucune série cochée." : Fmt.plural(done, "série") + (done > 1 ? " cochées." : " cochée.");
+        if (cardio > 0) msg += "\n" + Fmt.plural(cardio, "cardio") + (cardio > 1 ? " notés." : " noté.");
         if (undone == 1) msg += "\nLa série non cochée ne sera pas enregistrée.";
         else if (undone > 1) msg += "\nLes " + undone + " séries non cochées ne seront pas enregistrées.";
         Ui.confirm(a, "Terminer la séance ?", msg, "Terminer", () -> {

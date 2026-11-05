@@ -132,7 +132,7 @@ final class SwapSheet {
     private static View optionView(MainActivity a, MealPlanner.Option o, boolean selected, View.OnClickListener l) {
         Nutrition.Totals t = o.meal.totals();
         LinearLayout card = Ui.vbox(a);
-        card.setBackground(Ui.pressable(selected ? Ui.outline(0x1469E6D2, Ui.ACCENT, 16) : Ui.outline(Ui.BG, Ui.LINE, 16), 16));
+        card.setBackground(Ui.pressable(selected ? Ui.outline((Ui.ACCENT & 0x00FFFFFF) | 0x14000000, Ui.ACCENT, 16) : Ui.outline(Ui.BG, Ui.LINE, 16), 16));
         card.setPadding(Ui.dp(14), Ui.dp(14), Ui.dp(14), Ui.dp(14));
         card.setLayoutParams(Ui.mlp(-1, -2, 0, 10, 0, 0));
         card.setOnClickListener(l);

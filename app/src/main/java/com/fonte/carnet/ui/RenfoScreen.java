@@ -26,6 +26,10 @@ public class RenfoScreen extends Screen {
                 + "l'appli enchaîne les exercices, les temps et les pauses pour toi.", 14, Ui.MUTED);
         intro.setPadding(0, Ui.dp(4), 0, Ui.dp(4));
         c.addView(intro);
+        c.addView(Ui.button(a, "+ Cardio / ergo (vélo, rameur…)", Ui.SECONDARY,
+                v -> CardioSheet.add(a, com.fonte.carnet.core.Cardio.RENFO, 0, a::refresh)));
+        java.util.List<com.fonte.carnet.core.BodyLog.Activity> cardio = st.cardioAlone(com.fonte.carnet.core.Cardio.RENFO);
+        for (int i = 0; i < Math.min(3, cardio.size()); i++) c.addView(CardioSheet.row(a, cardio.get(i), true, a::refresh));
 
         for (String focus : Routines.FOCUS) {
             c.addView(Ui.section(a, focus));

@@ -41,7 +41,11 @@ public class CrossFitScreen extends Screen {
                 Ui.tile(a, Icon.TIMER, "EMOM", "Chaque minute", v -> a.show(new TimerSetupScreen(TimerSetupScreen.EMOM))),
                 Ui.tile(a, Icon.TIMER, "For Time", "Chrono + cap", v -> a.show(new TimerSetupScreen(TimerSetupScreen.FOR_TIME))),
                 Ui.tile(a, Icon.TIMER, "Tabata", "20 s / 10 s", v -> a.show(new TimerSetupScreen(TimerSetupScreen.TABATA))),
-                Ui.tile(a, Icon.TIMER, "Intervalles", "Travail / repos", v -> a.show(new TimerSetupScreen(TimerSetupScreen.INTERVALS)))));
+                Ui.tile(a, Icon.TIMER, "Intervalles", "Travail / repos", v -> a.show(new TimerSetupScreen(TimerSetupScreen.INTERVALS))),
+                Ui.tile(a, Icon.PULSE, "Cardio / ergo", "Vélo, rameur, SkiErg…",
+                        v -> CardioSheet.add(a, com.fonte.carnet.core.Cardio.CROSSFIT, 0, a::refresh))));
+        java.util.List<com.fonte.carnet.core.BodyLog.Activity> cardio = st.cardioAlone(com.fonte.carnet.core.Cardio.CROSSFIT);
+        for (int i = 0; i < Math.min(3, cardio.size()); i++) c.addView(CardioSheet.row(a, cardio.get(i), true, a::refresh));
 
         c.addView(Ui.section(a, "WOD de référence"));
         c.addView(Ui.grid(a, 2,

@@ -30,23 +30,27 @@ public final class Ui {
     private Ui() {
     }
 
-    // Palette Fonte v1.1 : graphite, acier bleuté et turquoise lumineux.
-    public static final int BG = 0xFF0B111B;
-    public static final int SURFACE = 0xFF151E2B;
-    public static final int SURFACE2 = 0xFF222E3E;
-    public static final int LINE = 0xFF344253;
-    public static final int TEXT = 0xFFF3F7FA;
-    public static final int MUTED = 0xFFB6C3CF;
-    public static final int FAINT = 0xFF8798AB;
-    public static final int ACCENT = 0xFF69E6D2;
-    public static final int ACCENT_SOFT = 0x2969E6D2;
+    // Palette Paradoxe (4.6) : charcoal et blanc, rose électrique pour les touches, jaune fluo pour le logo et l'anneau.
+    public static final int BG = 0xFF141416;
+    public static final int SURFACE = 0xFF1E1E22;
+    public static final int SURFACE2 = 0xFF2B2B31;
+    public static final int LINE = 0xFF3B3B43;
+    public static final int TEXT = 0xFFF4F4F6;
+    public static final int MUTED = 0xFFB8B8C2;
+    public static final int FAINT = 0xFF8B8B97;
+    /** Rose électrique : liens, heures, sélections. */
+    public static final int ACCENT = 0xFFFF2E93;
+    public static final int ACCENT_SOFT = 0x29FF2E93;
+    /** Jaune fluo : logo et anneau des calories, avec parcimonie. */
+    public static final int FLUO = 0xFFD4FF2A;
+    public static final int FLUO_SOFT = 0x26D4FF2A;
     public static final int OK = 0xFF85DBA1;
     public static final int OK_SOFT = 0x2685DBA1;
-    public static final int DANGER = 0xFFFF7885;
+    public static final int DANGER = 0xFFFF6B7A;
     /** Couleurs de données (macros, eau, dépense). */
-    public static final int PROTEIN = 0xFF7AA2FF;
-    public static final int CARBS = 0xFFFFC66B;
-    public static final int FAT = 0xFFFF8FAB;
+    public static final int PROTEIN = 0xFFFF5CA8;
+    public static final int CARBS = 0xFFFFB547;
+    public static final int FAT = 0xFF9DAEFF;
     public static final int WATER = 0xFF5BC0FF;
     public static final int BURN = 0xFFFF9F5A;
     public static final int WARN = 0xFFFFB347;
@@ -330,7 +334,7 @@ public final class Ui {
         int bg;
         switch (kind) {
             case PRIMARY:
-                bg = ACCENT;
+                bg = TEXT;
                 b.setTextColor(BG);
                 break;
             case SECONDARY:
@@ -629,7 +633,7 @@ public final class Ui {
         b.setSingleLine(true);
         b.setEllipsize(TextUtils.TruncateAt.END);
         if (kind == GHOST) b.setBackground(pressable(outline(0x00000000, LINE, 12), 12));
-        else b.setBackground(pressable(rect(kind == PRIMARY ? ACCENT : SURFACE2, 12), 12));
+        else b.setBackground(pressable(rect(kind == PRIMARY ? TEXT : SURFACE2, 12), 12));
         b.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
         return b;
     }

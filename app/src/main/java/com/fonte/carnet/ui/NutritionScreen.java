@@ -84,7 +84,7 @@ public class NutritionScreen extends Screen {
         LinearLayout row = Ui.hbox(a);
         RingView ring = new RingView(a);
         long left = Math.round(goal - t.kcal);
-        ring.set(goal > 0 ? (float) (t.kcal / goal) : 0f, Fmt.kg(Math.abs(left)), left >= 0 ? "kcal restantes" : "kcal en trop", Ui.ACCENT);
+        ring.set(goal > 0 ? (float) (t.kcal / goal) : 0f, Fmt.kg(Math.abs(left)), left >= 0 ? "kcal restantes" : "kcal en trop", Ui.FLUO);
         row.addView(ring, Ui.lp(Ui.dp(128), Ui.dp(128)));
         LinearLayout macros = Ui.vbox(a);
         macros.setPadding(Ui.dp(16), 0, 0, 0);

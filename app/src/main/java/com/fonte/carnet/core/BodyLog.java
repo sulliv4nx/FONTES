@@ -30,13 +30,30 @@ public final class BodyLog {
         public int ml;
     }
 
+    /** Activité notée à la main : hors séance (onglet Nutrition) ou cardio d'une séance (vélo, rameur…). */
     public static class Activity {
         public long id;
         public int day;
         public long time;
         public String name;
         public int minutes;
+        /** Calories nettes (repos déduit). */
         public int kcal;
+        /** Cardio d'une séance : type (voir {@link Cardio}), sinon null. */
+        public String kind;
+        /** 0 facile, 1 modéré, 2 intense, -1 non précisé. */
+        public int intensity = -1;
+        public int meters;
+        /** Calories affichées par l'ergo ou la montre (0 = non notées). */
+        public int shownKcal;
+        /** Discipline (Cardio.MUSCU, CROSSFIT, RENFO) ; null = activité hors séance. */
+        public String sport;
+        /** Séance de musculation à laquelle le cardio appartient (0 = aucune). */
+        public long sessionId;
+
+        public boolean training() {
+            return sport != null;
+        }
     }
 
     public static final String WAIST = "Tour de taille";

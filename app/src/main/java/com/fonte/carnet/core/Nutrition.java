@@ -341,7 +341,11 @@ public final class Nutrition {
         List<Burn> out = new ArrayList<>();
         for (Session s : sessions) {
             if (s.inProgress() || Days.key(s.start) != day) continue;
-            int min = (int) Math.max(10, Math.min(180, s.durationMs() / 60000));
+            // Le cardio noté dans la séance compte à part : la muscu prend le reste du temps.
+            int cardio = 0;
+            for (BodyLog.Activity a : activities) if (a.sessionId == s.id) cardio += a.minutes;
+            if (s.exercises.isEmpty() && cardio > 0) continue;
+            int min = (int) Math.max(cardio > 0 ? 5 : 10, Math.min(180, s.durationMs() / 60000 - cardio));
             out.add(new Burn(s.name, min, netKcal(MET_MUSCU, weight, min)));
         }
         for (WodResult r : wods) {
