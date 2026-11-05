@@ -30,7 +30,7 @@ public class ComposeScreen extends ScrollScreen {
     public View build() {
         if (session == null) session = new ComposeSession(st);
         LinearLayout c = Ui.vbox(a);
-        c.addView(Ui.hint(a, "Choisis ce que tu as dans le frigo ou ce que tu as envie de manger. Fonte compose des repas avec, ajustés à ton objectif."));
+        c.addView(Ui.hint(a, "Choisis ce que tu as dans le frigo ou ce que tu as envie de manger. L'appli compose des repas avec, ajustés à ton objectif."));
 
         EditText search = Ui.field(a, "Rechercher un ingrédient", Ui.TEXT_FIELD);
         search.setText(query);
@@ -50,7 +50,7 @@ public class ComposeScreen extends ScrollScreen {
         LinearLayout opt = Ui.card(a);
         opt.setLayoutParams(Ui.mlp(-1, -2, 0, 12, 0, 8));
         opt.addView(Ui.switchRow(a, "Compléter si besoin",
-                "Fonte peut ajouter du riz, des tomates ou de l'huile pour finir le plat. Ce qui manque va dans ta liste de courses.",
+                "L'appli peut ajouter du riz, des tomates ou de l'huile pour finir le plat. Ce qui manque va dans ta liste de courses.",
                 session.complete, on -> {
                     session.setComplete(on);
                     updateCount();

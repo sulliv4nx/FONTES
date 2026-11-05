@@ -86,6 +86,8 @@ public final class Store {
     /** Mes repas (v4) : réglages et plan de la semaine. */
     public MealPrefs mealPrefs = new MealPrefs();
     public MealPlan mealPlan;
+    /** Journée type (diète à équivalences). */
+    public com.fonte.carnet.core.DayPrefs dayPrefs = new com.fonte.carnet.core.DayPrefs();
     public Session current;
     public Program program;
     public Settings settings = new Settings();
@@ -121,6 +123,7 @@ public final class Store {
         measures.clear();
         mealPrefs = new MealPrefs();
         mealPlan = null;
+        dayPrefs = new com.fonte.carnet.core.DayPrefs();
         current = null;
         program = null;
         settings = new Settings();
@@ -474,6 +477,7 @@ public final class Store {
 
     public void deleteFood(FoodEntry e) {
         foodEntries.remove(e);
+        dayPrefs.eaten.values().removeIf(id -> id == e.id);
         if (mealPlan != null) {
             for (MealPlan.Meal m : mealPlan.meals) {
                 if (m.entries.remove(Long.valueOf(e.id)) && m.entries.isEmpty()) m.eaten = false;
@@ -752,6 +756,93 @@ public final class Store {
         int today = Days.today();
         if (mealPlan == null || today > mealPlan.end()) generateMealPlan(mealPrefs(), today);
         return mealPlan;
+    }
+
+    // ---------------------------------------------------------------- journée type
+
+    /** Journée type d'un jour : jour de séance si c'est un jour d'entraînement prévu, sinon jour de repos. */
+    public com.fonte.carnet.core.DayPlanner.Day dayPlan(int day) {
+        boolean training = plannedTraining(day);
+        Nutrition.Targets t = training ? trainingTargets() : restTargets();
+        return com.fonte.carnet.core.DayPlanner.build(dayPrefs, t.kcal, t.protein, t.carbs, t.fat, training, this::food,
+                dayPrefs.firstsFor(day));
+    }
+
+    /** Coche un repas de la journée type : une entrée dans le journal (retirée si on décoche). */
+    public void setDayMealEaten(int day, com.fonte.carnet.core.DayPlanner.Slot slot, String title, boolean eaten) {
+        String key = com.fonte.carnet.core.DayPrefs.eatenKey(day, slot.index);
+        Long old = dayPrefs.eaten.get(key);
+        if (!eaten) {
+            if (old != null) {
+                for (int i = foodEntries.size() - 1; i >= 0; i--) if (foodEntries.get(i).id == old) foodEntries.remove(i);
+                dayPrefs.eaten.remove(key);
+            }
+            save();
+            return;
+        }
+        if (old != null) return;
+        FoodEntry e = new FoodEntry();
+        e.id = newId();
+        e.day = day;
+        e.time = Days.start(day) + slot.minutes * 60_000L;
+        int h = slot.minutes / 60;
+        e.meal = h < 10 ? FoodEntry.BREAKFAST : h >= 11 && h < 15 ? FoodEntry.LUNCH : h >= 19 ? FoodEntry.DINNER : FoodEntry.SNACK;
+        StringBuilder name = new StringBuilder(title).append(" : ");
+        double grams = 0;
+        for (int i = 0; i < slot.lines.size(); i++) {
+            com.fonte.carnet.core.DayPlanner.Line l = slot.lines.get(i);
+            if (i > 0) name.append(", ");
+            name.append(com.fonte.carnet.core.DayPlanner.phrase(l.food));
+            grams += l.grams;
+        }
+        e.name = name.toString();
+        e.grams = grams;
+        e.kcal = slot.kcal;
+        e.protein = slot.protein;
+        e.carbs = slot.carbs;
+        e.fat = slot.fat;
+        foodEntries.add(e);
+        dayPrefs.eaten.put(key, e.id);
+        save();
+    }
+
+    public boolean dayMealEaten(int day, int slot) {
+        Long id = dayPrefs.eaten.get(com.fonte.carnet.core.DayPrefs.eatenKey(day, slot));
+        if (id == null) return false;
+        for (FoodEntry e : foodEntries) if (e.id == id) return true;
+        dayPrefs.eaten.remove(com.fonte.carnet.core.DayPrefs.eatenKey(day, slot));
+        return false;
+    }
+
+    /**
+     * Les 7 prochains jours de la journée type, sous forme de plan, pour la liste de courses. Les articles cochés et
+     * ajoutés sont ceux de la journée type (ils restent d'une fois sur l'autre). Les légumes « au choix » tournent
+     * d'un jour à l'autre.
+     */
+    public MealPlan dayWeek() {
+        MealPlan plan = new MealPlan();
+        int start = Days.today();
+        plan.start = start;
+        plan.days = 7;
+        plan.checked = dayPrefs.shopChecked;
+        plan.extras = dayPrefs.shopExtras;
+        for (int d = 0; d < 7; d++) {
+            int day = Days.add(start, d);
+            com.fonte.carnet.core.DayPlanner.Day dp = dayPlan(day);
+            for (com.fonte.carnet.core.DayPlanner.Slot s : dp.slots) {
+                MealPlan.Meal m = new MealPlan.Meal();
+                m.day = day;
+                m.slot = MealPlan.LUNCH;
+                m.name = com.fonte.carnet.core.DayPlanner.title(s, dp.training);
+                for (com.fonte.carnet.core.DayPlanner.Line l : s.lines) {
+                    Food f = l.food;
+                    if (com.fonte.carnet.core.DayPlanner.VEG.equals(l.role) && !l.choice.isEmpty()) f = l.choice.get(d % l.choice.size());
+                    m.items.add(new MealPlan.Item(f.id, f.name, l.grams));
+                }
+                plan.meals.add(m);
+            }
+        }
+        return plan;
     }
 
     /** Les ingrédients choisis sont notés comme « déjà là » dans la liste de courses. */

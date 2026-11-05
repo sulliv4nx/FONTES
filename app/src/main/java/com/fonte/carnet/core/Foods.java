@@ -117,6 +117,7 @@ public final class Foods {
         l.add(f("dattes", "Dattes séchées", FRUIT, 282, 2.5, 67, 0.4, 24, "3 dattes"));
         // Matières grasses et oléagineux
         l.add(f("huile", "Huile d'olive ou de colza", FAT, 884, 0, 0, 100, 10, "1 cuillère à soupe"));
+        l.add(f("huile_lin", "Huile de lin", FAT, 884, 0, 0, 100, 10, "1 cuillère à soupe"));
         l.add(f("beurre", "Beurre", FAT, 717, 0.9, 0.1, 81, 10, "1 noisette"));
         l.add(f("beurre_cacahuete", "Beurre de cacahuète", FAT, 588, 25, 13, 50, 15, "1 cuillère à soupe"));
         l.add(f("amandes", "Amandes", FAT, 579, 21, 7, 49.9, 30, "1 poignée"));

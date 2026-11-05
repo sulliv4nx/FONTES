@@ -504,7 +504,7 @@ public class MainActivity extends Activity {
         Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
         i.setType("application/json");
-        i.putExtra(Intent.EXTRA_TITLE, "fonte-sauvegarde-" + Fmt.isoDate(System.currentTimeMillis()) + ".json");
+        i.putExtra(Intent.EXTRA_TITLE, "paradoxe-training-sauvegarde-" + Fmt.isoDate(System.currentTimeMillis()) + ".json");
         try {
             startActivityForResult(i, REQ_EXPORT);
         } catch (ActivityNotFoundException e) {
@@ -561,7 +561,7 @@ public class MainActivity extends Activity {
                             Ui.toast(this, "Données importées.");
                         } catch (Exception e) {
                             Ui.info(this, "Import impossible",
-                                    "Ce fichier n'est pas une sauvegarde valide de Fonte.\n\n" + e.getMessage());
+                                    "Ce fichier n'est pas une sauvegarde valide de l'appli.\n\n" + e.getMessage());
                         }
                     });
         }

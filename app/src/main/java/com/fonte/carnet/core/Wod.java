@@ -85,7 +85,7 @@ public class Wod {
             case GIRL:
                 return "The Girls";
             case FONTE:
-                return "WOD Fonte";
+                return "WOD Paradoxe";
             default:
                 return "Mon WOD";
         }

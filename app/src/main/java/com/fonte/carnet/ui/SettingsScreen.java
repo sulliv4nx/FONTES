@@ -97,8 +97,8 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "Sauvegarde"));
         LinearLayout card = Ui.card(a);
-        card.addView(Ui.text(a, "Tes données restent sur ce téléphone (seul le code-barres d'un produit scanné est envoyé à "
-                + "Open Food Facts pour trouver sa fiche). Exporte-les de temps en temps "
+        card.addView(Ui.text(a, "Tes données restent sur ce téléphone (seuls le code-barres d'un produit scanné et le texte d'une "
+                + "recherche d'aliment en ligne sont envoyés à Open Food Facts). Exporte-les de temps en temps "
                 + "(Drive, mail…) pour ne rien perdre si tu changes d'appareil.", 14, Ui.MUTED));
         card.addView(Ui.button(a, "Exporter mes données", Ui.SECONDARY, v -> a.exportData()));
         card.addView(Ui.button(a, "Importer une sauvegarde", Ui.GHOST, v -> a.importData()));
@@ -106,7 +106,7 @@ public class SettingsScreen extends Screen {
 
         c.addView(Ui.section(a, "À propos"));
         LinearLayout about = Ui.card(a);
-        about.addView(Ui.medium(a, "Fonte 4.4", 16, Ui.TEXT));
+        about.addView(Ui.medium(a, "Paradoxe Training 4.5", 16, Ui.TEXT));
         about.addView(Ui.text(a, st.sessions.size() + " séances de muscu · "
                 + Fmt.plural(st.wodResults.size(), "score") + " de WOD · "
                 + st.renfoLogs.size() + " circuits de renfo · "

@@ -20,19 +20,37 @@ import java.util.Locale;
 
 /** Liste de courses de la semaine, cochable, à partager ou copier. */
 public class ShoppingScreen extends ScrollScreen {
+    /** Liste de la journée type (7 prochains jours) plutôt que des plats de la semaine. */
+    private final boolean dayType;
+    private MealPlan week;
+
+    public ShoppingScreen() {
+        this(false);
+    }
+
+    public ShoppingScreen(boolean dayType) {
+        this.dayType = dayType;
+    }
+
+    private MealPlan plan() {
+        if (!dayType) return st.mealPlan;
+        if (week == null) week = st.dayWeek();
+        return week;
+    }
+
     @Override
     public String title() {
-        return "Liste de courses";
+        return dayType ? "Courses · journée type" : "Liste de courses";
     }
 
     @Override
     public int actionIcon() {
-        return st.mealPlan == null ? -1 : Icon.SHARE;
+        return plan() == null ? -1 : Icon.SHARE;
     }
 
     @Override
     public void onAction() {
-        MealPlan plan = st.mealPlan;
+        MealPlan plan = plan();
         if (plan == null) return;
         Intent i = new Intent(Intent.ACTION_SEND);
         i.setType("text/plain");
@@ -48,7 +66,8 @@ public class ShoppingScreen extends ScrollScreen {
     @Override
     public View build() {
         LinearLayout c = Ui.vbox(a);
-        MealPlan plan = st.mealPlan;
+        week = null;
+        MealPlan plan = plan();
         if (plan == null) {
             c.addView(Ui.hint(a, "Crée d'abord ton plan de repas : la liste de courses est calculée à partir de lui."));
             c.addView(Ui.button(a, "Créer mon plan", Ui.PRIMARY, v -> a.show(new MealSetupScreen())));

@@ -50,6 +50,7 @@ public class MealPlanScreen extends ScrollScreen {
     @Override
     public View build() {
         LinearLayout c = Ui.vbox(a);
+        c.addView(DayPlanScreen.modeSwitch(a, false, day));
         MealPlan plan = st.mealPlan;
         if (plan == null) {
             c.addView(emptyCard());
@@ -81,6 +82,11 @@ public class MealPlanScreen extends ScrollScreen {
                 + "La liste de courses de la semaine est calculée avec."));
         card.addView(Ui.button(a, "Créer mon plan", Ui.PRIMARY, v -> a.show(new MealSetupScreen())));
         card.addView(Ui.button(a, "Composer avec mes ingrédients", Ui.SECONDARY, v -> a.show(new ComposeScreen())));
+        TextView or = Ui.text(a, "Ou une journée type à heures fixes, avec des équivalences pour chaque aliment, comme une diète de préparateur.",
+                13, Ui.MUTED);
+        or.setPadding(0, Ui.dp(12), 0, 0);
+        card.addView(or);
+        card.addView(Ui.button(a, "Créer ma journée type", Ui.SECONDARY, v -> a.show(new DaySetupScreen(true))));
         return card;
     }
 
@@ -94,7 +100,7 @@ public class MealPlanScreen extends ScrollScreen {
         txt.setPadding(Ui.dp(12), 0, Ui.dp(8), 0);
         txt.addView(Ui.medium(a, "Composer avec mes ingrédients", 15, Ui.TEXT));
         java.util.List<String> mine = st.mealPrefs().pantry;
-        txt.addView(Ui.text(a, mine.isEmpty() ? "Choisis ce que tu as, Fonte propose les repas · plats réunionnais inclus"
+        txt.addView(Ui.text(a, mine.isEmpty() ? "Choisis ce que tu as, l'appli propose les repas · plats réunionnais inclus"
                 : mine.size() + " ingrédient" + (mine.size() > 1 ? "s" : "") + " choisi" + (mine.size() > 1 ? "s" : "")
                 + " · voir les repas possibles", 12, Ui.MUTED));
         row.addView(txt, Ui.weight(1));

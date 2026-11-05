@@ -314,7 +314,7 @@ public class FoodAddScreen extends Screen {
         results.addView(createCard(q));
         TextView credits = Ui.text(a, filter == FoodSearch.BRANDS
                 ? "Données Open Food Facts (ODbL), saisies par la communauté : vérifie l'étiquette en cas de doute."
-                : "Sources : Ciqual 2025 (ANSES, licence ouverte) · Open Food Facts (ODbL) · recettes Fonte", 11, Ui.FAINT);
+                : "Sources : Ciqual 2025 (ANSES, licence ouverte) · Open Food Facts (ODbL) · recettes Paradoxe", 11, Ui.FAINT);
         credits.setGravity(Gravity.CENTER);
         credits.setPadding(0, Ui.dp(14), 0, Ui.dp(4));
         results.addView(credits);
@@ -322,7 +322,7 @@ public class FoodAddScreen extends Screen {
 
     /** Sans recherche : récents, tes aliments, puis la base Fonte par rayon. */
     private void fillBrowse() {
-        results.addView(Ui.hint(a, "Cherche parmi tes aliments, la base Fonte, ses plats (créoles compris), les "
+        results.addView(Ui.hint(a, "Cherche parmi tes aliments, la base de l'appli, ses plats (créoles compris), les "
                 + "3 400 aliments de la table Ciqual et les produits de marque d'Open Food Facts."));
         List<Food> recent = st.recentFoods(8);
         if (!recent.isEmpty()) {
@@ -425,7 +425,7 @@ public class FoodAddScreen extends Screen {
 
     private View offlineBanner() {
         LinearLayout card = banner(Icon.OFFLINE, CREOLE_TEXT);
-        ((TextView) card.getChildAt(1)).setText(boldStart("Pas de réseau.", " Fonte cherche dans tes aliments, ses plats et Ciqual, "
+        ((TextView) card.getChildAt(1)).setText(boldStart("Pas de réseau.", " L'appli cherche dans tes aliments, ses plats et Ciqual, "
                 + "qui sont sur le téléphone. Les produits de marque reviendront avec la connexion."));
         return card;
     }
@@ -510,7 +510,7 @@ public class FoodAddScreen extends Screen {
         meta.setPadding(0, Ui.dp(4), 0, 0);
         String detail;
         if (dish != null) {
-            meta.addView(tag("Plat Fonte", DISH_TEXT, DISH_BG));
+            meta.addView(tag("Plat Paradoxe", DISH_TEXT, DISH_BG));
             if (dish.has(Recipe.CREOLE)) meta.addView(tag("Réunionnais", CREOLE_TEXT, CREOLE_BG));
             double[] t = FoodSearch.dishTotals(dish);
             detail = FoodSearch.dishPortion(dish) + " ≈ " + Fmt.kg(Math.round(t[0])) + " kcal · P " + Math.round(t[1]);
@@ -584,7 +584,7 @@ public class FoodAddScreen extends Screen {
     private static String sourceLabel(Food f) {
         if (Ciqual.isCiqual(f)) return "Ciqual 2025 · valeurs moyennes";
         if (f.custom) return f.barcode != null && !f.barcode.isEmpty() ? "Gardé d'Open Food Facts" : "Mes aliments";
-        return "Base Fonte";
+        return "Base Paradoxe";
     }
 
     /** Produit en ligne : la fiche complète s'ouvre sur la quantité, l'incomplète sur le formulaire. */

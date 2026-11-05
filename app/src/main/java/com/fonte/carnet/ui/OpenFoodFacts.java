@@ -26,7 +26,7 @@ final class OpenFoodFacts {
     private OpenFoodFacts() {
     }
 
-    static final String USER_AGENT = "Fonte/4.4 (Android; https://github.com/sulliv4nx/FONTES)";
+    static final String USER_AGENT = "ParadoxeTraining/4.5 (Android; https://github.com/sulliv4nx/FONTES)";
     private static final long MIN_INTERVAL = 6000;
     private static final String FIELDS = "code,product_name,product_name_fr,brands,quantity,serving_quantity,nutriments,countries_tags";
 

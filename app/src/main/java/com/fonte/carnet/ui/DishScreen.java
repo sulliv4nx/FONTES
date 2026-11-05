@@ -76,7 +76,7 @@ public class DishScreen extends Screen {
     public View build() {
         LinearLayout c = Ui.vbox(a);
         LinearLayout tags = Ui.hbox(a);
-        tags.addView(tag("Plat Fonte", FoodAddScreen.DISH_TEXT, FoodAddScreen.DISH_BG));
+        tags.addView(tag("Plat Paradoxe", FoodAddScreen.DISH_TEXT, FoodAddScreen.DISH_BG));
         if (recipe.has(Recipe.CREOLE)) tags.addView(tag("Réunionnais", FoodAddScreen.CREOLE_TEXT, FoodAddScreen.CREOLE_BG));
         c.addView(tags);
 
@@ -296,7 +296,7 @@ public class DishScreen extends Screen {
             list.removeAllViews();
             String query = search.getText().toString().trim();
             if (query.isEmpty()) {
-                list.addView(Ui.text(a, "Tape le nom d'un aliment : base Fonte, Ciqual et tes aliments.", 13, Ui.MUTED));
+                list.addView(Ui.text(a, "Tape le nom d'un aliment : base de l'appli, Ciqual et tes aliments.", 13, Ui.MUTED));
                 return;
             }
             FoodSearch.Input in = new FoodSearch.Input();

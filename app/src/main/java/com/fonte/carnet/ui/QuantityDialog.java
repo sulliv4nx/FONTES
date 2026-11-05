@@ -186,7 +186,7 @@ final class QuantityDialog {
         boolean mine = false;
         for (com.fonte.carnet.core.Portions.Portion p : portions) if ("Ma portion".equals(p.label)) mine = true;
         if (!mine) {
-            TextView hint = Ui.text(a, "« Ma portion » apparaîtra ici : Fonte retient la quantité que tu prends d'habitude.", 12, Ui.FAINT);
+            TextView hint = Ui.text(a, "« Ma portion » apparaîtra ici : l'appli retient la quantité que tu prends d'habitude.", 12, Ui.FAINT);
             hint.setGravity(Gravity.CENTER);
             hint.setPadding(0, Ui.dp(10), 0, 0);
             box.addView(hint);

@@ -119,7 +119,7 @@ public class ProfileScreen extends Screen {
             c.addView(opt);
         }
         int[] typical = st.typicalSession();
-        c.addView(note("Ne compte pas le sport ici : chaque séance notée dans Fonte s'ajoute le jour même, en calories nettes "
+        c.addView(note("Ne compte pas le sport ici : chaque séance notée dans l'appli s'ajoute le jour même, en calories nettes "
                 + "(le repos est déjà dans le métabolisme). Les jours d'entraînement prévus, une séance type est comptée "
                 + "tant que rien n'est noté : ≈ " + typical[0] + " kcal pour " + typical[1] + " min."));
         c.addView(trainingDays());
@@ -354,7 +354,7 @@ public class ProfileScreen extends Screen {
         LinearLayout card = Ui.card(a);
         card.addView(Ui.cardHeader(a, Icon.SPARK, Ui.ACCENT, "Réglage par la balance", null, null));
         if (!t.ready()) {
-            card.addView(Ui.text(a, "Pèse-toi au moins 4 fois sur 2 semaines (le matin, à jeun) : Fonte comparera ta courbe au rythme visé "
+            card.addView(Ui.text(a, "Pèse-toi au moins 4 fois sur 2 semaines (le matin, à jeun) : l'appli comparera ta courbe au rythme visé "
                     + "et te proposera de corriger ton objectif de 100 à 200 kcal. Pesées prises en compte : " + t.count
                     + (t.count > 1 ? " sur " + t.spanDays + " jours." : "."), 13, Ui.MUTED));
         } else {

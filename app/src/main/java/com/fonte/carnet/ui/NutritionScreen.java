@@ -113,13 +113,14 @@ public class NutritionScreen extends Screen {
 
     /** Mes repas : ce qui est prévu ce jour-là, ou l'invitation à créer un plan. */
     private View mealsCard() {
+        if (st.dayPrefs.dayMode) return dayCard();
         com.fonte.carnet.core.MealPlan plan = st.mealPlan;
         LinearLayout card = Ui.clickCard(a, v -> a.show(new MealPlanScreen(day)));
         card.addView(Ui.cardHeader(a, Icon.SPARK, Ui.ACCENT, "Mes repas", plan == null ? null : "Courses",
                 v -> a.show(new ShoppingScreen())));
         if (plan == null || !plan.covers(day)) {
             card.addView(Ui.text(a, plan == null
-                    ? "Fonte te propose quoi manger sur 7 jours (plats, collations, shakers), ajusté à ton objectif, avec la liste de courses."
+                    ? "L'appli te propose quoi manger sur 7 jours (plats, collations, shakers), ajusté à ton objectif, avec la liste de courses."
                     : "Aucun plan pour ce jour.", 13, Ui.MUTED));
             card.addView(Ui.button(a, plan == null ? "Créer mon plan" : "Voir mes repas", Ui.SECONDARY,
                     v -> a.show(plan == null ? new MealSetupScreen() : new MealPlanScreen())));
@@ -139,6 +140,40 @@ public class NutritionScreen extends Screen {
             txt.addView(Ui.medium(a, next.name, 15, Ui.TEXT));
             row.addView(txt, Ui.weight(1));
             TextView k = Ui.medium(a, Fmt.kg(Math.round(next.totals().kcal)) + " kcal", 14, Ui.TEXT);
+            Ui.tabular(k);
+            row.addView(k);
+            card.addView(row);
+        } else {
+            TextView done = Ui.text(a, "Tous les repas du jour sont cochés.", 13, Ui.OK);
+            done.setPadding(0, Ui.dp(8), 0, 0);
+            card.addView(done);
+        }
+        return card;
+    }
+
+    /** Mes repas en journée type : repas du jour, cochés, et le prochain. */
+    private View dayCard() {
+        com.fonte.carnet.core.DayPlanner.Day plan = st.dayPlan(day);
+        LinearLayout card = Ui.clickCard(a, v -> a.show(new DayPlanScreen(day)));
+        card.addView(Ui.cardHeader(a, Icon.SPARK, Ui.ACCENT, "Mes repas · journée type", "Courses",
+                v -> a.show(new ShoppingScreen(true))));
+        int mains = 0, eaten = 0;
+        for (com.fonte.carnet.core.DayPlanner.Slot s : plan.slots) {
+            if (!s.main()) continue;
+            mains++;
+            if (st.dayMealEaten(day, s.index)) eaten++;
+        }
+        card.addView(Ui.text(a, mains + " repas · " + Fmt.kg(Math.round(plan.kcal / 10.0) * 10) + " kcal · "
+                + (plan.training ? "jour de séance" : "jour de repos") + " · " + eaten + " coché" + (eaten > 1 ? "s" : ""), 13, Ui.MUTED));
+        com.fonte.carnet.core.DayPlanner.Slot next = DayPlanScreen.nextSlot(st, plan, day);
+        if (next != null) {
+            LinearLayout row = Ui.hbox(a);
+            row.setPadding(0, Ui.dp(10), 0, 0);
+            LinearLayout txt = Ui.vbox(a);
+            txt.addView(Ui.text(a, (day == Days.today() ? "À suivre · " : "") + com.fonte.carnet.core.DayPrefs.clock(next.minutes), 12, Ui.FAINT));
+            txt.addView(Ui.medium(a, com.fonte.carnet.core.DayPlanner.title(next, plan.training), 15, Ui.TEXT));
+            row.addView(txt, Ui.weight(1));
+            TextView k = Ui.medium(a, Math.round(next.kcal) + " kcal", 14, Ui.TEXT);
             Ui.tabular(k);
             row.addView(k);
             card.addView(row);

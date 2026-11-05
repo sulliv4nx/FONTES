@@ -33,7 +33,7 @@ final class JsonCodec {
 
     static JSONObject write(Store s) throws JSONException {
         JSONObject o = new JSONObject();
-        o.put("app", "Fonte");
+        o.put("app", "Paradoxe Training");
         o.put("version", VERSION);
         o.put("nextId", s.nextId);
         o.put("nextExerciseId", s.nextExerciseId);
@@ -241,6 +241,7 @@ final class JsonCodec {
         }
         o.put("measures", measures);
         writeMeals(s, o);
+        writeDay(s, o);
     }
 
     // ---------------------------------------------------------------- mes repas (v4)
@@ -320,6 +321,154 @@ final class JsonCodec {
         }
         j.put("extras", extras);
         o.put("mealPlan", j);
+    }
+
+    // ---------------------------------------------------------------- journée type (v4.5)
+
+    private static JSONArray strings(java.util.Collection<String> c) {
+        JSONArray a = new JSONArray();
+        for (String x : c) a.put(x);
+        return a;
+    }
+
+    private static void readStrings(JSONArray a, java.util.Collection<String> into) {
+        if (a == null) return;
+        into.clear();
+        for (int i = 0; i < a.length(); i++) {
+            String x = a.optString(i, "");
+            if (!x.isEmpty()) into.add(x);
+        }
+    }
+
+    private static void writeDay(Store s, JSONObject o) throws JSONException {
+        com.fonte.carnet.core.DayPrefs p = s.dayPrefs;
+        JSONObject j = new JSONObject();
+        j.put("dayMode", p.dayMode);
+        j.put("wake", p.wake);
+        j.put("training", p.training);
+        j.put("meals", p.meals);
+        j.put("preSnack", p.preSnack);
+        j.put("aroundTraining", p.aroundTraining);
+        j.put("carbs", strings(p.carbs));
+        j.put("proteins", strings(p.proteins));
+        j.put("fats", strings(p.fats));
+        j.put("fruits", strings(p.fruits));
+        j.put("vegetables", strings(p.vegetables));
+        JSONObject times = new JSONObject();
+        for (java.util.Map.Entry<Integer, Integer> e : p.times.entrySet()) times.put(String.valueOf(e.getKey()), e.getValue());
+        j.put("times", times);
+        JSONObject firsts = new JSONObject();
+        for (java.util.Map.Entry<String, String> e : p.firsts.entrySet()) firsts.put(e.getKey(), e.getValue());
+        j.put("firsts", firsts);
+        JSONObject dayFirsts = new JSONObject();
+        int old = com.fonte.carnet.core.Days.add(com.fonte.carnet.core.Days.today(), -14);
+        for (java.util.Map.Entry<String, String> e : p.dayFirsts.entrySet()) {
+            int d = com.fonte.carnet.core.Fmt.parseInt(e.getKey().split(":")[0]);
+            if (d >= old) dayFirsts.put(e.getKey(), e.getValue());
+        }
+        j.put("dayFirsts", dayFirsts);
+        JSONArray rem = new JSONArray();
+        for (com.fonte.carnet.core.DayPrefs.Reminder r : p.reminders) {
+            JSONObject rj = new JSONObject();
+            rj.put("text", r.text);
+            rj.put("slot", r.slot);
+            rem.put(rj);
+        }
+        j.put("reminders", rem);
+        if (p.rules != null) j.put("rules", strings(p.rules));
+        JSONObject eaten = new JSONObject();
+        for (java.util.Map.Entry<String, Long> e : p.eaten.entrySet()) eaten.put(e.getKey(), e.getValue());
+        j.put("eaten", eaten);
+        j.put("shopChecked", strings(p.shopChecked));
+        JSONArray extras = new JSONArray();
+        for (MealPlan.Extra x : p.shopExtras) {
+            JSONObject xj = new JSONObject();
+            xj.put("name", x.name);
+            xj.put("checked", x.checked);
+            extras.put(xj);
+        }
+        j.put("shopExtras", extras);
+        o.put("dayPrefs", j);
+    }
+
+    private static void readDay(Store s, JSONObject o) throws JSONException {
+        JSONObject j = o.optJSONObject("dayPrefs");
+        com.fonte.carnet.core.DayPrefs p = new com.fonte.carnet.core.DayPrefs();
+        if (j != null) {
+            p.dayMode = j.optBoolean("dayMode", false);
+            int wake = j.optInt("wake", p.wake);
+            if (wake >= 0 && wake < 1440) p.wake = wake;
+            int training = j.optInt("training", p.training);
+            if (training >= 0 && training < 1440) p.training = training;
+            p.meals = Math.max(4, Math.min(6, j.optInt("meals", 5)));
+            p.preSnack = j.optBoolean("preSnack", true);
+            p.aroundTraining = j.optBoolean("aroundTraining", true);
+            if (j.has("carbs")) readStrings(j.optJSONArray("carbs"), p.carbs);
+            if (j.has("proteins")) readStrings(j.optJSONArray("proteins"), p.proteins);
+            if (j.has("fats")) readStrings(j.optJSONArray("fats"), p.fats);
+            if (j.has("fruits")) readStrings(j.optJSONArray("fruits"), p.fruits);
+            if (j.has("vegetables")) readStrings(j.optJSONArray("vegetables"), p.vegetables);
+            JSONObject times = j.optJSONObject("times");
+            if (times != null) {
+                java.util.Iterator<String> it = times.keys();
+                while (it.hasNext()) {
+                    String k = it.next();
+                    int v = times.optInt(k, -1);
+                    int idx = com.fonte.carnet.core.Fmt.parseInt(k);
+                    if (v >= 0 && v < 1440 && idx >= 0 && idx < 6) p.times.put(idx, v);
+                }
+            }
+            JSONObject firsts = j.optJSONObject("firsts");
+            if (firsts != null) {
+                java.util.Iterator<String> it = firsts.keys();
+                while (it.hasNext()) {
+                    String k = it.next();
+                    p.firsts.put(k, firsts.optString(k, ""));
+                }
+            }
+            JSONObject dayFirsts = j.optJSONObject("dayFirsts");
+            if (dayFirsts != null) {
+                java.util.Iterator<String> it = dayFirsts.keys();
+                while (it.hasNext()) {
+                    String k = it.next();
+                    p.dayFirsts.put(k, dayFirsts.optString(k, ""));
+                }
+            }
+            JSONArray rem = j.optJSONArray("reminders");
+            if (rem != null) {
+                for (int i = 0; i < rem.length(); i++) {
+                    JSONObject rj = rem.optJSONObject(i);
+                    if (rj == null) continue;
+                    String t = rj.optString("text", "").trim();
+                    if (!t.isEmpty()) p.reminders.add(new com.fonte.carnet.core.DayPrefs.Reminder(t, Math.max(0, Math.min(5, rj.optInt("slot", 0)))));
+                }
+            }
+            if (j.has("rules")) {
+                p.rules = new java.util.ArrayList<>();
+                readStrings(j.optJSONArray("rules"), p.rules);
+            }
+            JSONObject eaten = j.optJSONObject("eaten");
+            if (eaten != null) {
+                java.util.Iterator<String> it = eaten.keys();
+                while (it.hasNext()) {
+                    String k = it.next();
+                    p.eaten.put(k, eaten.optLong(k, 0));
+                }
+            }
+            readStrings(j.optJSONArray("shopChecked"), p.shopChecked);
+            JSONArray extras = j.optJSONArray("shopExtras");
+            if (extras != null) {
+                for (int i = 0; i < extras.length(); i++) {
+                    JSONObject xj = extras.optJSONObject(i);
+                    if (xj == null) continue;
+                    MealPlan.Extra x = new MealPlan.Extra();
+                    x.name = xj.optString("name", "Article");
+                    x.checked = xj.optBoolean("checked", false);
+                    p.shopExtras.add(x);
+                }
+            }
+        }
+        s.dayPrefs = p;
     }
 
     private static void readMeals(Store s, JSONObject o) throws JSONException {
@@ -543,6 +692,7 @@ final class JsonCodec {
             }
         }
         readMeals(s, o);
+        readDay(s, o);
     }
 
     private static JSONObject wod(Wod w) throws JSONException {
@@ -584,7 +734,7 @@ final class JsonCodec {
 
     static void read(Store s, JSONObject o) throws JSONException {
         if (o.optInt("version", 0) < 1 || !o.has("sessions")) {
-            throw new JSONException("Ce fichier n'est pas une sauvegarde Fonte.");
+            throw new JSONException("Ce fichier n'est pas une sauvegarde Paradoxe Training.");
         }
         s.nextId = Math.max(1, o.optLong("nextId", 1));
         s.nextExerciseId = Math.max(Library.FIRST_CUSTOM_ID, o.optLong("nextExerciseId", Library.FIRST_CUSTOM_ID));

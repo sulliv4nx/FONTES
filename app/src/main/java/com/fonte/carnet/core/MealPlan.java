@@ -105,8 +105,8 @@ public class MealPlan {
     public int trainingMask;
     public final List<Meal> meals = new ArrayList<>();
     /** Articles cochés dans la liste de courses (identifiants d'aliments). */
-    public final Set<String> checked = new LinkedHashSet<>();
-    public final List<Extra> extras = new ArrayList<>();
+    public Set<String> checked = new LinkedHashSet<>();
+    public List<Extra> extras = new ArrayList<>();
 
     public static String kind(String slot) {
         if (BREAKFAST.equals(slot)) return Recipe.BREAKFAST;

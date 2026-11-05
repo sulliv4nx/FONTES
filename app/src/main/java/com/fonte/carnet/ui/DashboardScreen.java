@@ -26,7 +26,7 @@ public class DashboardScreen extends Screen {
 
     @Override
     public String title() {
-        return "Fonte";
+        return "Paradoxe Training";
     }
 
     @Override
@@ -124,6 +124,7 @@ public class DashboardScreen extends Screen {
 
     /** Prochain repas prévu dans « Mes repas », s'il y a un plan pour aujourd'hui. */
     private View nextMealCard(int day) {
+        if (st.dayPrefs.dayMode) return nextDayMealCard(day);
         com.fonte.carnet.core.MealPlan.Meal m = MealPlanScreen.nextMeal(st.mealPlan, day);
         if (m == null) return null;
         LinearLayout card = Ui.clickCard(a, v -> a.show(new MealPlanScreen(day)));
@@ -137,6 +138,28 @@ public class DashboardScreen extends Screen {
         txt.addView(n);
         row.addView(txt, Ui.weight(1));
         TextView k = Ui.medium(a, Fmt.kg(Math.round(m.totals().kcal)) + " kcal", 14, Ui.TEXT);
+        Ui.tabular(k);
+        row.addView(k);
+        card.addView(row);
+        return card;
+    }
+
+    /** Prochain repas de la journée type. */
+    private View nextDayMealCard(int day) {
+        com.fonte.carnet.core.DayPlanner.Day plan = st.dayPlan(day);
+        com.fonte.carnet.core.DayPlanner.Slot s = DayPlanScreen.nextSlot(st, plan, day);
+        if (s == null) return null;
+        LinearLayout card = Ui.clickCard(a, v -> a.show(new DayPlanScreen(day)));
+        LinearLayout row = Ui.hbox(a);
+        row.addView(Ui.iconBadge(a, Icon.SPARK, Ui.ACCENT));
+        LinearLayout txt = Ui.vbox(a);
+        txt.setPadding(Ui.dp(12), 0, Ui.dp(8), 0);
+        txt.addView(Ui.text(a, "À manger · " + com.fonte.carnet.core.DayPrefs.clock(s.minutes), 12, Ui.MUTED));
+        TextView n = Ui.medium(a, com.fonte.carnet.core.DayPlanner.title(s, plan.training), 15, Ui.TEXT);
+        n.setMaxLines(2);
+        txt.addView(n);
+        row.addView(txt, Ui.weight(1));
+        TextView k = Ui.medium(a, Math.round(s.kcal) + " kcal", 14, Ui.TEXT);
         Ui.tabular(k);
         row.addView(k);
         card.addView(row);

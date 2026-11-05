@@ -38,7 +38,7 @@ public class WodListScreen extends Screen {
         if (tag != null) {
             list.addAll(Wods.byTag(tag));
             for (Wod w : st.customWods) if (w.tags.contains(tag)) list.add(w);
-            intro = "WOD de référence et WOD Fonte qui travaillent surtout : " + tag.toLowerCase(java.util.Locale.FRENCH) + ".";
+            intro = "WOD de référence et WOD Paradoxe qui travaillent surtout : " + tag.toLowerCase(java.util.Locale.FRENCH) + ".";
         } else if (Wod.CUSTOM.equals(kind)) {
             list.addAll(st.customWods);
             intro = "Tes WOD enregistrés.";
