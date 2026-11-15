@@ -441,9 +441,23 @@ public class MainActivity extends Activity {
 
     /** Démarre une séance (après confirmation si une autre est en cours). */
     public void startSession(String name, List<ExerciseEntry> plan, long programKey, int programDay) {
+        startSession(name, plan, programKey, programDay, null);
+    }
+
+    /** Séance avec du cardio prévu (programmation du coach), à valider pendant la séance. */
+    public void startSession(String name, List<ExerciseEntry> plan, long programKey, int programDay,
+                             List<com.fonte.carnet.core.BodyLog.Activity> cardio) {
         Runnable go = () -> {
             stopRest();
-            store.startSession(name, plan, programKey, programDay);
+            com.fonte.carnet.core.Session s = store.startSession(name, plan, programKey, programDay);
+            if (cardio != null) {
+                for (com.fonte.carnet.core.BodyLog.Activity c : cardio) {
+                    c.sessionId = s.id;
+                    c.day = com.fonte.carnet.core.Days.key(s.start);
+                    c.planned = true;
+                    store.addCardio(c);
+                }
+            }
             openSession();
         };
         if (store.current == null) {

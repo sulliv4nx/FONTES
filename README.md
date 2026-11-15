@@ -66,7 +66,7 @@ Poids (courbe, variations sur 7 et 30 jours, IMC), mensurations (taille, hanches
 - **Minuteur de repos** : il démarre quand tu coches une série et vibre à la fin. L'écran reste allumé pendant la séance.
 - **Séances types** : full body A/B, haut/bas, push/pull/legs, bras, fessiers, épaules & abdos, force 5×5, strongman.
 - **Séance par muscle** : tu choisis les muscles (pectoraux, dos, épaules, bras, jambes, abdos…), l'objectif (force, volume, endurance) et ton temps disponible, et l'appli propose une séance.
-- **Programmation du coach** : prends une photo (tableau blanc, feuille, capture d'écran), choisis une image ou colle le texte. L'appli repère exercices, séries, répétitions, charges (kg ou % du max) et le WOD éventuel.
+- **Programmation du coach** : prends une photo (tableau blanc, feuille, capture d'écran), choisis une image ou colle le texte. L'appli repère exercices, séries, répétitions, charges (kg ou % du max) et le WOD éventuel. Les lignes qui se suivent pour un même exercice (montée en charge) forment un seul exercice avec toutes ses séries. Le cardio (« 250 m rameur », « 2 min corde à sauter », « Course 5x400 m », « 15 cal assault bike ») arrive dans la séance « à faire » : « Fait ✓ » le valide. Reconnus aussi depuis la 4.7 : Z press, rotations d'épaules, band pull-apart.
 - **Programmes** : Smolov Jr et 5/3/1, avec des charges calculées depuis ton max.
 
 ### CrossFit

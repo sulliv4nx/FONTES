@@ -90,6 +90,10 @@ public final class Library {
         l.add(new Exercise(58, "Roue abdominale", ARMS, false));
         l.add(new Exercise(59, "Abduction de hanche", LEGS, false));
         l.add(new Exercise(60, "Développé couché prise serrée", PUSH, false));
+        // v4.7 : exercices fréquents dans les programmations de coach.
+        l.add(new Exercise(61, "Z press", PUSH, false));
+        l.add(new Exercise(62, "Rotations d'épaules", PULL, false));
+        l.add(new Exercise(63, "Band pull-apart", PULL, false));
         return l;
     }
 

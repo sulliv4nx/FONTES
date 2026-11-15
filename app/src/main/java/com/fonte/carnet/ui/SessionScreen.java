@@ -348,11 +348,16 @@ public class SessionScreen extends Screen {
         int done = s.doneSets();
         int total = 0;
         for (ExerciseEntry e : s.exercises) total += e.sets.size();
-        int cardio = st.cardio(s.id).size();
+        int cardio = 0, todo = 0;
+        for (com.fonte.carnet.core.BodyLog.Activity c : st.cardio(s.id)) {
+            if (c.planned) todo++;
+            else cardio++;
+        }
         if (done == 0 && cardio == 0) {
             new AlertDialog.Builder(a)
                     .setTitle("Aucune série cochée")
-                    .setMessage("Coche ✓ les séries effectuées pour qu'elles soient enregistrées.")
+                    .setMessage(todo > 0 ? "Coche ✓ les séries effectuées et touche « Fait ✓ » sur ton cardio pour qu'ils soient enregistrés."
+                            : "Coche ✓ les séries effectuées pour qu'elles soient enregistrées.")
                     .setPositiveButton("Continuer", null)
                     .setNeutralButton("Abandonner la séance", (d, w) -> abandon())
                     .show();
@@ -361,6 +366,8 @@ public class SessionScreen extends Screen {
         int undone = total - done;
         String msg = done == 0 ? "Aucune série cochée." : Fmt.plural(done, "série") + (done > 1 ? " cochées." : " cochée.");
         if (cardio > 0) msg += "\n" + Fmt.plural(cardio, "cardio") + (cardio > 1 ? " notés." : " noté.");
+        if (todo > 0) msg += "\n" + (todo > 1 ? "Les " + todo + " cardios « à faire » ne seront pas enregistrés."
+                : "Le cardio « à faire » ne sera pas enregistré.");
         if (undone == 1) msg += "\nLa série non cochée ne sera pas enregistrée.";
         else if (undone > 1) msg += "\nLes " + undone + " séries non cochées ne seront pas enregistrées.";
         Ui.confirm(a, "Terminer la séance ?", msg, "Terminer", () -> {

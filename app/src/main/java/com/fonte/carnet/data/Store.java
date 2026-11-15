@@ -279,6 +279,11 @@ public final class Store {
         if (s == null) return null;
         current = null;
         s.dropUndone();
+        // Le cardio prévu mais pas validé n'est pas gardé, comme les séries non cochées.
+        for (int i = activities.size() - 1; i >= 0; i--) {
+            BodyLog.Activity a = activities.get(i);
+            if (a.sessionId == s.id && a.planned) activities.remove(i);
+        }
         if (s.exercises.isEmpty() && cardio(s.id).isEmpty()) {
             save();
             return null;
@@ -568,7 +573,7 @@ public final class Store {
     public List<BodyLog.Activity> cardioAlone(String sport) {
         List<BodyLog.Activity> l = new ArrayList<>();
         for (BodyLog.Activity a : activities) {
-            if (!a.training() || a.sessionId != 0) continue;
+            if (!a.training() || a.sessionId != 0 || a.planned) continue;
             if (sport == null || sport.equals(a.sport)) l.add(a);
         }
         java.util.Collections.sort(l, (x, y) -> Long.compare(y.time, x.time));
@@ -583,7 +588,7 @@ public final class Store {
     /** Séance, WOD ou renfo ce jour-là. */
     public boolean trained(int day) {
         for (Session s : sessions) if (Days.key(s.start) == day) return true;
-        for (BodyLog.Activity a : activities) if (a.training() && a.sessionId == 0 && a.day == day) return true;
+        for (BodyLog.Activity a : activities) if (a.training() && a.sessionId == 0 && !a.planned && a.day == day) return true;
         for (WodResult r : wodResults) if (Days.key(r.date) == day) return true;
         for (RenfoLog l : renfoLogs) if (Days.key(l.date) == day) return true;
         return false;

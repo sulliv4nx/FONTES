@@ -55,10 +55,12 @@ final class CardioSheet {
         int[] intensity = {act.intensity < 0 ? 1 : act.intensity};
 
         LinearLayout box = Ui.vbox(a);
-        TextView title = Ui.text(a, isNew ? "Cardio / ergo" : act.name, 19, Ui.TEXT);
+        boolean planned = act.planned;
+        TextView title = Ui.text(a, isNew ? "Cardio / ergo" : (planned ? "Valider : " : "") + act.name, 19, Ui.TEXT);
         title.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         box.addView(title);
-        TextView sub = Ui.text(a, "Noté à la main, " + (act.sessionId != 0 ? "dans ta séance." : "dans " + Cardio.sportLabel(act.sport) + "."),
+        TextView sub = Ui.text(a, planned ? "Prévu par ta programmation. Corrige la durée ou la distance si besoin, puis valide."
+                : "Noté à la main, " + (act.sessionId != 0 ? "dans ta séance." : "dans " + Cardio.sportLabel(act.sport) + "."),
                 13, Ui.MUTED);
         sub.setPadding(0, Ui.dp(2), 0, Ui.dp(10));
         box.addView(sub);
@@ -150,7 +152,7 @@ final class CardioSheet {
         Ui.onText(shown, t -> update.run());
 
         TextView cancel = Ui.button(a, "Annuler", Ui.GHOST, null);
-        TextView ok = Ui.button(a, isNew ? "Ajouter" : "Enregistrer", Ui.PRIMARY, null);
+        TextView ok = Ui.button(a, isNew ? "Ajouter" : planned ? "Valider" : "Enregistrer", Ui.PRIMARY, null);
         LinearLayout buttons = Ui.hbox(a);
         buttons.setPadding(0, Ui.dp(14), 0, 0);
         LinearLayout.LayoutParams l1 = new LinearLayout.LayoutParams(0, -2, 1);
@@ -199,26 +201,49 @@ final class CardioSheet {
             act.meters = Cardio.unit(kind[0]) == null ? 0 : Cardio.meters(kind[0], Fmt.parse(dist.getText().toString()));
             act.shownKcal = Math.max(0, Fmt.parseInt(shown.getText().toString()));
             act.kcal = Cardio.netKcal(act.kind, act.intensity, m, act.shownKcal, weight);
+            act.planned = false;
             a.store.addCardio(act);
             Ui.hideKeyboard(minutes);
             d.dismiss();
             if (isNew) Ui.toast(a, name + " · " + m + " min ajouté");
+            else if (planned) Ui.toast(a, name + " validé");
             if (done != null) done.run();
         });
         d.show();
     }
 
-    /** Ligne d'un cardio noté (nom, détail) ; toucher pour le modifier. */
+    /** Ligne d'un cardio noté (nom, détail) ; toucher pour le modifier. Prévu : « Fait ✓ » le valide tel quel. */
     static View row(MainActivity a, BodyLog.Activity act, boolean withDate, Runnable done) {
         LinearLayout card = Ui.clickCard(a, v -> edit(a, act, done));
         LinearLayout top = Ui.hbox(a);
         top.setGravity(Gravity.CENTER_VERTICAL);
         top.addView(Ui.medium(a, act.name, 16, Ui.TEXT), Ui.weight(1));
-        top.addView(Ui.badge(a, "Cardio", Ui.ACCENT, Ui.ACCENT_SOFT));
+        top.addView(act.planned ? Ui.badge(a, "À faire", Ui.MUTED, Ui.SURFACE2) : Ui.badge(a, "Cardio", Ui.ACCENT, Ui.ACCENT_SOFT));
         card.addView(top);
-        TextView t = Ui.text(a, (withDate ? Fmt.day(act.time) + " · " : "") + Cardio.summary(act), 13, Ui.MUTED);
+        TextView t = Ui.text(a, (withDate ? Fmt.day(act.time) + " · " : "") + (act.planned ? plannedSummary(act) : Cardio.summary(act)),
+                13, Ui.MUTED);
         t.setPadding(0, Ui.dp(2), 0, 0);
         card.addView(t);
+        if (act.planned) {
+            TextView fait = Ui.smallButton(a, "Fait ✓", Ui.SECONDARY, v -> {
+                act.planned = false;
+                act.kcal = Cardio.netKcal(act.kind, act.intensity < 0 ? 1 : act.intensity, act.minutes, act.shownKcal,
+                        a.store.weightForCalc());
+                a.store.save();
+                Ui.toast(a, act.name + " validé");
+                if (done != null) done.run();
+            });
+            TextView change = Ui.smallButton(a, "Modifier", Ui.GHOST, v -> edit(a, act, done));
+            card.addView(Ui.buttonRow(a, fait, change));
+        }
         return card;
+    }
+
+    /** « 250 m (≈ 1 min) », « 2 min », « 45 cal (≈ 3 min) » */
+    static String plannedSummary(BodyLog.Activity act) {
+        String d = Cardio.distance(act.kind, act.meters);
+        if (d != null) return d + " (≈ " + act.minutes + " min)";
+        if (act.shownKcal > 0) return act.shownKcal + " cal (≈ " + act.minutes + " min)";
+        return act.minutes + " min";
     }
 }

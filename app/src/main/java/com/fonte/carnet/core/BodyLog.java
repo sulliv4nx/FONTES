@@ -50,6 +50,8 @@ public final class BodyLog {
         public String sport;
         /** Séance de musculation à laquelle le cardio appartient (0 = aucune). */
         public long sessionId;
+        /** Prévu par la programmation, pas encore fait : ni calories ni historique tant qu'il n'est pas validé. */
+        public boolean planned;
 
         public boolean training() {
             return sport != null;

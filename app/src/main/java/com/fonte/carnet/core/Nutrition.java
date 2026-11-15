@@ -343,7 +343,7 @@ public final class Nutrition {
             if (s.inProgress() || Days.key(s.start) != day) continue;
             // Le cardio noté dans la séance compte à part : la muscu prend le reste du temps.
             int cardio = 0;
-            for (BodyLog.Activity a : activities) if (a.sessionId == s.id) cardio += a.minutes;
+            for (BodyLog.Activity a : activities) if (a.sessionId == s.id && !a.planned) cardio += a.minutes;
             if (s.exercises.isEmpty() && cardio > 0) continue;
             int min = (int) Math.max(cardio > 0 ? 5 : 10, Math.min(180, s.durationMs() / 60000 - cardio));
             out.add(new Burn(s.name, min, netKcal(MET_MUSCU, weight, min)));
@@ -359,7 +359,7 @@ public final class Nutrition {
             out.add(new Burn(l.name, min, netKcal(MET_RENFO, weight, min)));
         }
         for (BodyLog.Activity a : activities) {
-            if (a.day != day) continue;
+            if (a.day != day || a.planned) continue;
             out.add(new Burn(a.name, a.minutes, a.kcal));
         }
         return out;

@@ -219,6 +219,7 @@ final class JsonCodec {
             if (a.shownKcal > 0) j.put("shownKcal", a.shownKcal);
             if (a.sport != null) j.put("sport", a.sport);
             if (a.sessionId != 0) j.put("sessionId", a.sessionId);
+            if (a.planned) j.put("planned", true);
             acts.put(j);
         }
         o.put("activities", acts);
@@ -666,6 +667,7 @@ final class JsonCodec {
                 a.shownKcal = Math.max(0, j.optInt("shownKcal", 0));
                 a.sport = j.has("sport") ? j.optString("sport", null) : null;
                 a.sessionId = j.optLong("sessionId", 0);
+                a.planned = j.optBoolean("planned", false);
                 s.activities.add(a);
                 s.nextId = Math.max(s.nextId, a.id + 1);
             }

@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
 /**
  * Lit une programmation de coach écrite librement (texte collé ou scanné) :
  * « Squat 5x5 100kg », « Développé couché 4 × 8 @ 70 », « 3 séries de 12 curl », « Front squat 5x3 75% »…
- * Les blocs AMRAP / EMOM / For Time sont repérés et proposés comme WOD.
+ * Les blocs AMRAP / EMOM / For Time sont repérés et proposés comme WOD. Les lignes qui se suivent pour un même exercice
+ * (montée en charge) forment un seul exercice ; le cardio (« 250 m rameur », « 2 min corde à sauter ») est repéré à part.
  */
 public final class CoachParser {
     private CoachParser() {
@@ -37,6 +38,15 @@ public final class CoachParser {
         public boolean max;
         public final List<Double> weights = new ArrayList<>();
         public int percent;
+        /** Lignes suivantes du même exercice (montée en charge, puis séries de travail). */
+        public final List<Item> more = new ArrayList<>();
+
+        /** Nombre total de séries, lignes suivantes comprises. */
+        public int totalSets() {
+            int n = sets;
+            for (Item m : more) n += m.sets;
+            return n;
+        }
 
         public double weightForSet(int i) {
             if (weights.isEmpty()) return 0;
@@ -46,16 +56,28 @@ public final class CoachParser {
         /** Séries prêtes pour une séance. */
         public ExerciseEntry toEntry(long id) {
             ExerciseEntry e = new ExerciseEntry(id);
+            addSets(e);
+            for (Item m : more) m.addSets(e);
+            return e;
+        }
+
+        private void addSets(ExerciseEntry e) {
             for (int i = 0; i < sets; i++) {
                 SetEntry s = new SetEntry(weightForSet(i), max ? 0 : reps);
                 s.amrap = max;
                 e.sets.add(s);
             }
-            return e;
         }
 
-        /** « 5×5 · 100 kg », « 4×max », « 5×3 · 75 % » */
+        /** « 5×5 · 100 kg », « 4×max », « 5×3 · 75 % » ; plusieurs lignes : « 1×10 · 20 kg, 1×6 · 30 kg, … » */
         public String summary() {
+            if (more.isEmpty()) return part();
+            StringBuilder sb = new StringBuilder(part());
+            for (Item m : more) sb.append(", ").append(m.part());
+            return sb.toString();
+        }
+
+        private String part() {
             StringBuilder sb = new StringBuilder();
             sb.append(sets).append("×").append(max ? "max" : String.valueOf(reps));
             if (!weights.isEmpty()) {
@@ -73,8 +95,36 @@ public final class CoachParser {
         }
     }
 
+    /** Cardio ou ergo lu dans la programmation : « 250 m rameur », « 2 min corde à sauter », « 15 cal air bike ». */
+    public static class CardioItem {
+        public String raw;
+        /** Type (voir {@link Cardio}). */
+        public String kind;
+        public int minutes;
+        public int meters;
+        /** Calories demandées (« 15 cal »), 0 sinon. */
+        public int kcal;
+        /** Durée déduite de la distance ou des calories. */
+        public boolean estimated;
+
+        /** « 250 m (≈ 1 min) », « 2 min », « 15 cal (≈ 1 min) » */
+        public String summary() {
+            StringBuilder sb = new StringBuilder();
+            if (meters > 0) sb.append(Cardio.distance(kind, meters));
+            else if (kcal > 0) sb.append(kcal).append(" cal");
+            if (sb.length() > 0) {
+                if (estimated) sb.append(" (≈ ").append(minutes).append(" min)");
+                else sb.append(" · ").append(minutes).append(" min");
+            } else {
+                sb.append(minutes).append(" min");
+            }
+            return sb.toString();
+        }
+    }
+
     public static class Result {
         public final List<Item> items = new ArrayList<>();
+        public final List<CardioItem> cardio = new ArrayList<>();
         public final List<String> ignored = new ArrayList<>();
         /** Partie WOD détectée (AMRAP, EMOM, For Time…), ou null. */
         public Wod wod;
@@ -100,6 +150,13 @@ public final class CoachParser {
     private static final Pattern AFTER_KEYWORD = Pattern.compile("(?:amrap|emom|cap|tabata)\\s*:?\\s*(\\d{1,3})", FLAGS);
     private static final Pattern EXMOM = Pattern.compile("e(\\d)mom", FLAGS);
     private static final Pattern ROUNDS = Pattern.compile("(\\d{1,2})\\s*(?:rounds?|tours?|rft)\\b", FLAGS);
+    /** Lettre de partie : « C) », « D. », « E: ». */
+    private static final Pattern LABEL = Pattern.compile("^[A-Ha-h]\\d?\\s*[).:]");
+    private static final Pattern AMOUNT = Pattern.compile(
+            "(\\d{1,5}(?:[.,]\\d{1,2})?)\\s*(km|kms|m|mt|mètres?|metres?|kcal|cals?|calories?|min|mn|minutes?|sec|secondes?|s|'|\")(?![a-zà-ü])", FLAGS);
+    private static final Pattern CLOCK = Pattern.compile("\\b(\\d{1,2}):(\\d{2})\\b");
+    private static final Pattern REST_LINE = Pattern.compile(
+            "^(?:\\d{1,3}\\s*(?:min|mn|minutes?|sec|secondes?|s|'|\")?\\s*(?:de\\s+)?)?(?:repos|rest|r[ée]cup[ée]ration|r[ée]cup)\\b.*$", FLAGS);
 
     private static class Scheme {
         int sets;
@@ -116,10 +173,17 @@ public final class CoachParser {
         if (text == null) return res;
         String pending = null;
         boolean inWod = false;
+        // Dernier exercice lu juste au-dessus (pour réunir les lignes d'une montée en charge).
+        Item last = null;
+        // Tours du bloc en cours (« Endurance : 3 tours »), appliqués au cardio.
+        int rounds = 1;
         for (String raw : text.replace('\r', '\n').split("\n")) {
-            String line = BULLET.matcher(raw.trim()).replaceFirst("").trim();
+            String trimmed = raw.trim();
+            String line = BULLET.matcher(trimmed).replaceFirst("").trim();
             if (line.isEmpty()) {
                 inWod = false;
+                last = null;
+                rounds = 1;
                 if (pending != null) res.ignored.add(pending);
                 pending = null;
                 continue;
@@ -128,19 +192,35 @@ public final class CoachParser {
             if (isWodHeader(n)) {
                 res.wod = newWod(line, n);
                 inWod = true;
+                last = null;
                 if (pending != null) res.ignored.add(pending);
                 pending = null;
                 continue;
             }
-            if (inWod && !PART.matcher(raw.trim()).find()) {
+            if (inWod && !PART.matcher(trimmed).find()) {
                 res.wod.lines.add(line);
                 continue;
             }
             inWod = false;
+            CardioItem cardio = parseCardio(line, rounds);
+            if (cardio != null) {
+                res.cardio.add(cardio);
+                pending = null;
+                last = null;
+                continue;
+            }
             Item it = parseLine(line);
             if (it == null) {
+                if (REST_LINE.matcher(line).matches()) {
+                    // « 1 min repos » : compris, rien à noter.
+                    last = null;
+                    continue;
+                }
+                Matcher r = ROUNDS.matcher(line);
+                if (r.find()) rounds = Math.max(1, Math.min(20, Integer.parseInt(r.group(1))));
                 if (pending != null) res.ignored.add(pending);
                 pending = line;
+                last = null;
                 continue;
             }
             if (it.name.isEmpty() && pending != null) it.name = cleanName(pending);
@@ -154,7 +234,13 @@ public final class CoachParser {
                 double m = maxes.of(it.exerciseId);
                 if (m > 0) it.weights.add(Programs.round(m * it.percent / 100.0, rounding));
             }
+            // Même exercice sur la ligne suivante, sans nouvelle lettre de partie : on continue le même exercice.
+            if (last != null && !LABEL.matcher(trimmed).find() && sameExercise(last, it)) {
+                last.more.add(it);
+                continue;
+            }
             res.items.add(it);
+            last = it;
         }
         if (pending != null) res.ignored.add(pending);
         if (res.wod != null && res.wod.lines.isEmpty()) res.wod = null;
@@ -229,6 +315,117 @@ public final class CoachParser {
         it.weights.addAll(clean);
         it.name = cleanName(rest);
         return it;
+    }
+
+    private static boolean sameExercise(Item a, Item b) {
+        if (a.exerciseId != 0 || b.exerciseId != 0) return a.exerciseId == b.exerciseId;
+        return key(a.name).equals(key(b.name));
+    }
+
+    // ---------------------------------------------------------------- cardio
+
+    /** Mots du cardio, du plus précis au plus général : {expression, type}. */
+    private static final String[][] CARDIO_WORDS = {
+            {"corde a sauter", "corde"}, {"jump rope", "corde"}, {"single under", "corde"}, {"double under", "corde"}, {"corde", "corde"},
+            {"assault bike", "air_bike"}, {"echo bike", "air_bike"}, {"air bike", "air_bike"}, {"airbike", "air_bike"},
+            {"assault", "air_bike"}, {"echo", "air_bike"},
+            {"bike erg", "velo_appart"}, {"bikeerg", "velo_appart"}, {"velo d appartement", "velo_appart"}, {"spinning", "velo_appart"},
+            {"velo", "velo_appart"}, {"bike", "velo_appart"},
+            {"ski erg", "skierg"}, {"skierg", "skierg"}, {"ski", "skierg"},
+            {"rameur", "rameur"}, {"rower", "rameur"}, {"rowerg", "rameur"}, {"row erg", "rameur"}, {"concept2", "rameur"},
+            {"rowing", "rameur"}, {"row", "rameur"},
+            {"tapis", "tapis"}, {"treadmill", "tapis"},
+            {"course a pied", "course"}, {"course", "course"}, {"running", "course"}, {"run", "course"}, {"footing", "course"},
+            {"jogging", "course"}, {"sprint", "course"},
+            {"elliptique", "elliptique"}, {"elliptical", "elliptique"},
+            {"natation", "natation"}, {"nage", "natation"}, {"swim", "natation"}, {"swimming", "natation"},
+            {"marche", "marche"}, {"walk", "marche"}};
+    /** Exercices de force qui contiennent un mot du cardio (rowing haltère, farmer walk…). */
+    private static final String[] NOT_CARDIO = {"haltere", "barre", "dumbbell", "db", "kettlebell", "kb", "upright", "ring", "renegade",
+            "seal", "pendlay", "t bar", "farmer", "carry", "lunge", "fente", "sled", "traineau", "prowler", "yoke", "sandbag", "sac",
+            "bear", "crawl", "inverse", "un bra", "machine"};
+    /** Allure moyenne pour déduire une durée d'une distance (m par minute). */
+    private static double metersPerMinute(String kind) {
+        switch (kind) {
+            case "rameur":
+                return 250;
+            case "skierg":
+                return 230;
+            case "velo_appart":
+            case "air_bike":
+            case "velo":
+                return 400;
+            case "course":
+            case "tapis":
+                return 170;
+            case "natation":
+                return 40;
+            case "marche":
+                return 100;
+            default:
+                return 150;
+        }
+    }
+
+    static String cardioKind(String text) {
+        String k = key(text);
+        for (String bad : NOT_CARDIO) if (containsPhrase(k, bad)) return null;
+        for (String[] w : CARDIO_WORDS) if (containsPhrase(k, w[0])) return w[1];
+        return null;
+    }
+
+    /** « 250 m rameur », « 2 min corde à sauter », « Course 5x400 m », « 15 cal air bike » ; null si ce n'est pas du cardio. */
+    static CardioItem parseCardio(String line, int rounds) {
+        String kind = cardioKind(line);
+        if (kind == null) return null;
+        int meters = 0, kcal = 0;
+        double seconds = 0;
+        boolean found = false;
+        Matcher a = AMOUNT.matcher(line);
+        int first = -1;
+        while (a.find()) {
+            if (first < 0) first = a.start();
+            double v = Fmt.parse(a.group(1));
+            if (Double.isNaN(v) || v <= 0) continue;
+            String u = a.group(2).toLowerCase(Locale.FRENCH);
+            found = true;
+            if (u.startsWith("km")) meters += (int) Math.round(v * 1000);
+            else if (u.equals("m") || u.equals("mt") || u.startsWith("mè") || u.startsWith("me")) meters += (int) Math.round(v);
+            else if (u.startsWith("kcal") || u.startsWith("cal")) kcal += (int) Math.round(v);
+            else if (u.startsWith("min") || u.equals("mn") || u.equals("'")) seconds += v * 60;
+            else seconds += v;
+        }
+        if (seconds == 0) {
+            Matcher c = CLOCK.matcher(line);
+            if (c.find()) {
+                seconds = Integer.parseInt(c.group(1)) * 60 + Integer.parseInt(c.group(2));
+                found = true;
+            }
+        }
+        if (!found) return null;
+        // « 5x400 m » : multiplicateur juste avant la première quantité.
+        int times = rounds;
+        if (first > 0) {
+            Matcher x = Pattern.compile("(\\d{1,2})\\s*[x×*]\\s*$").matcher(line.substring(0, first));
+            if (x.find()) times *= Integer.parseInt(x.group(1));
+        }
+        CardioItem c = new CardioItem();
+        c.raw = line;
+        c.kind = kind;
+        c.meters = meters * times;
+        c.kcal = kcal * times;
+        if (seconds > 0) {
+            c.minutes = Math.max(1, (int) Math.ceil(seconds * times / 60.0));
+        } else if (c.meters > 0) {
+            c.minutes = Math.max(1, (int) Math.round(c.meters / metersPerMinute(kind)));
+            c.estimated = true;
+        } else if (c.kcal > 0) {
+            c.minutes = Math.max(1, (int) Math.round(c.kcal / ("air_bike".equals(kind) ? 15.0 : 12.0)));
+            c.estimated = true;
+        } else {
+            return null;
+        }
+        return c;
     }
 
     private static Scheme scheme(Matcher m, String sets, String reps) {
@@ -310,6 +507,8 @@ public final class CoachParser {
     }
 
     private static final Map<String, Long> ALIASES = new LinkedHashMap<>();
+    /** Noms reconnus seulement quand ils forment tout le nom. */
+    private static final Map<String, Long> EXACT = new LinkedHashMap<>();
 
     private static void alias(long id, String... names) {
         for (String n : names) ALIASES.put(key(n), id);
@@ -339,7 +538,7 @@ public final class CoachParser {
         alias(21, "curl", "biceps curl", "curl biceps", "curl barre");
         alias(22, "extension triceps", "triceps extension", "triceps");
         alias(23, "releve de jambe", "leg raise", "hanging leg raise", "releve de genou");
-        alias(24, "power clean", "epaule", "clean");
+        alias(24, "power clean", "clean");
         alias(25, "clean and jerk", "clean jerk", "epaule jete", "c j");
         alias(26, "snatch", "arrache", "power snatch");
         alias(27, "thruster");
@@ -374,6 +573,13 @@ public final class CoachParser {
         alias(58, "roue abdominale", "ab wheel", "roulette");
         alias(59, "abduction", "hip abduction");
         alias(60, "developpe couche prise serree", "close grip bench", "prise serree");
+        alias(61, "z press", "zpress");
+        alias(62, "rotation d epaule", "rotation epaule", "rotation de l epaule", "rotation externe", "rotation interne",
+                "external rotation", "internal rotation", "cuban rotation", "cercle de bra", "rotation de bra");
+        alias(63, "band pull apart", "pull apart", "ecartement elastique");
+        // « Épaulé » seul (sans accent : « epaule ») : la ligne entière, pour ne pas confondre avec l'épaule.
+        EXACT.put("epaule", 24L);
+        EXACT.put("epaule power", 24L);
     }
 
     /** Correspondance avec la bibliothèque : nom exact, alias, puis mots en commun. */
@@ -382,6 +588,8 @@ public final class CoachParser {
             String n = key(name);
             if (n.isEmpty()) return 0;
             for (Exercise e : exercises) if (key(e.name).equals(n)) return e.id;
+            Long exact = EXACT.get(n);
+            if (exact != null) return exact;
             long best = 0;
             int bestLen = 0;
             for (Map.Entry<String, Long> a : ALIASES.entrySet()) {

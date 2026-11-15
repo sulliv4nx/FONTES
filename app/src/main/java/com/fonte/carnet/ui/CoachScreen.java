@@ -43,6 +43,7 @@ public class CoachScreen extends Screen {
     private String text = "";
     private CoachParser.Result result;
     private final Set<Integer> excluded = new HashSet<>();
+    private final Set<Integer> excludedCardio = new HashSet<>();
     private String sessionName = "Programmation du coach";
 
     @Override
@@ -104,14 +105,16 @@ public class CoachScreen extends Screen {
             return r == null ? 0 : r.bestE1rm;
         }, st.settings.rounding);
         excluded.clear();
+        excludedCardio.clear();
         Ui.hideKeyboard(a.getWindow().getDecorView());
         a.refresh();
     }
 
     private void showResult(LinearLayout c) {
         c.addView(Ui.section(a, "Séance détectée"));
-        if (result.items.isEmpty()) {
-            TextView t = Ui.text(a, "Aucun exercice reconnu. Écris une ligne par exercice, par exemple « Squat 5x5 100kg ».", 14, Ui.MUTED);
+        if (result.items.isEmpty() && result.cardio.isEmpty()) {
+            TextView t = Ui.text(a, "Aucun exercice reconnu. Écris une ligne par exercice, par exemple « Squat 5x5 100kg » "
+                    + "ou « 250 m rameur ».", 14, Ui.MUTED);
             t.setPadding(0, 0, 0, Ui.dp(8));
             c.addView(t);
         }
@@ -137,6 +140,35 @@ public class CoachScreen extends Screen {
             card.addView(line);
             c.addView(card);
         }
+        if (!result.cardio.isEmpty()) {
+            TextView h = Ui.section(a, "Cardio / endurance");
+            c.addView(h);
+            for (int i = 0; i < result.cardio.size(); i++) {
+                CoachParser.CardioItem it = result.cardio.get(i);
+                final int idx = i;
+                LinearLayout card = Ui.card(a);
+                LinearLayout line = Ui.hbox(a);
+                CheckBox keep = new CheckBox(a);
+                keep.setChecked(!excludedCardio.contains(idx));
+                keep.setOnCheckedChangeListener((b, on) -> {
+                    if (on) excludedCardio.remove(idx);
+                    else excludedCardio.add(idx);
+                });
+                line.addView(keep);
+                LinearLayout txt = Ui.vbox(a);
+                txt.addView(Ui.medium(a, com.fonte.carnet.core.Cardio.name(it.kind), 16, Ui.TEXT));
+                TextView sum = Ui.text(a, it.summary(), 14, Ui.ACCENT);
+                Ui.tabular(sum);
+                txt.addView(sum);
+                line.addView(txt, Ui.weight(1));
+                card.addView(line);
+                c.addView(card);
+            }
+            TextView note = Ui.text(a, "Dans la séance, il apparaît « à faire » : touche « Fait ✓ » une fois terminé, "
+                    + "ou corrige la durée et les calories de l'ergo.", 12, Ui.FAINT);
+            note.setPadding(0, 0, 0, Ui.dp(8));
+            c.addView(note);
+        }
         if (!result.ignored.isEmpty()) {
             StringBuilder sb = new StringBuilder("Lignes non utilisées : ");
             for (int i = 0; i < result.ignored.size(); i++) {
@@ -147,18 +179,19 @@ public class CoachScreen extends Screen {
             ig.setPadding(0, 0, 0, Ui.dp(8));
             c.addView(ig);
         }
-        if (!result.items.isEmpty()) {
+        if (!result.items.isEmpty() || !result.cardio.isEmpty()) {
             EditText name = Ui.field(a, "Nom de la séance", Ui.TEXT_FIELD);
             name.setText(sessionName);
             Ui.onText(name, t -> sessionName = t.trim().isEmpty() ? "Programmation du coach" : t.trim());
             c.addView(Ui.labelled(a, "Nom de la séance", name));
             c.addView(Ui.button(a, "Démarrer la séance", Ui.PRIMARY, v -> {
                 List<ExerciseEntry> plan = plan();
-                if (plan.isEmpty()) {
+                List<com.fonte.carnet.core.BodyLog.Activity> cardio = cardioPlan();
+                if (plan.isEmpty() && cardio.isEmpty()) {
                     Ui.toast(a, "Coche au moins un exercice.");
                     return;
                 }
-                a.startSession(sessionName, plan, 0, -1);
+                a.startSession(sessionName, plan, 0, -1, cardio);
             }));
             c.addView(Ui.button(a, "Enregistrer comme modèle", Ui.GHOST, v -> {
                 List<ExerciseEntry> plan = plan();
@@ -194,6 +227,26 @@ public class CoachScreen extends Screen {
             plan.add(it.toEntry(id));
         }
         return plan;
+    }
+
+    /** Cardio coché, prêt à être ajouté « à faire » dans la séance. */
+    private List<com.fonte.carnet.core.BodyLog.Activity> cardioPlan() {
+        List<com.fonte.carnet.core.BodyLog.Activity> l = new ArrayList<>();
+        for (int i = 0; i < result.cardio.size(); i++) {
+            if (excludedCardio.contains(i)) continue;
+            CoachParser.CardioItem it = result.cardio.get(i);
+            com.fonte.carnet.core.BodyLog.Activity act = new com.fonte.carnet.core.BodyLog.Activity();
+            act.kind = it.kind;
+            act.name = com.fonte.carnet.core.Cardio.name(it.kind);
+            act.minutes = it.minutes;
+            act.meters = it.meters;
+            act.shownKcal = it.kcal;
+            act.intensity = 1;
+            act.sport = com.fonte.carnet.core.Cardio.MUSCU;
+            act.kcal = com.fonte.carnet.core.Cardio.netKcal(act.kind, 1, act.minutes, act.shownKcal, st.weightForCalc());
+            l.add(act);
+        }
+        return l;
     }
 
     // ---------------------------------------------------------------- photo, galerie, presse-papiers
