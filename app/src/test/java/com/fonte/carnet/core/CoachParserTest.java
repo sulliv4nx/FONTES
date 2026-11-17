@@ -201,4 +201,58 @@ public class CoachParserTest {
         assertTrue(parse("Bent over row 4x10 50kg").cardio.isEmpty());
         assertTrue(parse("Farmer walk 4x30 m").cardio.isEmpty());
     }
+
+    @Test
+    public void topSetBackoffPerSideAndBlocks() {
+        CoachParser.Result r = parse("FORCE\n"
+                + "Warn up \n"
+                + "Ankle Stretch KB 20\"/20\"\n"
+                + "Ankle Dinamic \u041a\u0412 5/5 \n"
+                + "ATG DB Split Squat 8/8 \n\n"
+                + "BLOC 1: \n"
+                + "BACK SQUAT STATO 1\" en montée \n"
+                + "TOP SET: Find 5 rep Ri 1-2\n"
+                + "BACK OFF SET : 4 x5 @-10%. Top set\n"
+                + "R. 2' \n"
+                + "BLOC 2: SINGLE LEG HIP THRUST FIND A Heavy rep Pause 1'");
+        assertTrue(r.ignored.toString(), r.ignored.isEmpty());
+        assertEquals(5, r.items.size());
+        // Échauffement : maintien et répétitions par côté ; « КВ » cyrillique lu « KB ».
+        CoachParser.Item stretch = r.items.get(0);
+        assertEquals(20, stretch.holdSec);
+        assertEquals(1, stretch.sets);
+        assertEquals("Ankle Dinamic KB", r.items.get(1).name);
+        assertEquals(5, r.items.get(1).reps);
+        assertEquals("Par côté", r.items.get(1).label);
+        // ATG split squat : une variante, pas le squat bulgare.
+        assertEquals(0, r.items.get(2).exerciseId);
+        assertEquals(8, r.items.get(2).reps);
+        // Back squat : top set de 5 puis 4 back-off à −10 %, repos 2 min, consigne gardée.
+        CoachParser.Item sq = r.items.get(3);
+        assertEquals(Library.SQUAT, sq.exerciseId);
+        assertEquals(5, sq.totalSets());
+        assertEquals("Top set", sq.label);
+        assertEquals(10, sq.more.get(0).backoff);
+        assertEquals(120, sq.rest);
+        assertTrue(sq.note, sq.note.contains("RIR 1-2") && sq.note.toLowerCase().contains("stato"));
+        ExerciseEntry e = sq.toEntry(Library.SQUAT);
+        assertEquals(5, e.sets.size());
+        assertEquals("Back-off −10 %", e.sets.get(4).label);
+        assertEquals(120, e.restSec);
+        // Single leg hip thrust : une rep lourde à trouver, repos 1 min, exercice à part.
+        CoachParser.Item ht = r.items.get(4);
+        assertEquals("Single leg hip thrust", ht.name);
+        assertEquals(0, ht.exerciseId);
+        assertEquals(1, ht.reps);
+        assertEquals(60, ht.rest);
+        // Top set chiffré : le back-off est calculé tout de suite (100 kg − 10 % = 90 kg).
+        CoachParser.Result k = parse("Squat\nTop set 1x5 @ 100kg\nBack off 4x5 @-10%");
+        assertEquals(1, k.items.size());
+        assertEquals(90, k.items.get(0).more.get(0).weights.get(0), 1e-9);
+        // Séance notée après coup : la durée saisie remplace le chronomètre.
+        Session s = new Session();
+        s.start = System.currentTimeMillis() - 3 * 86_400_000L;
+        s.manualMinutes = 75;
+        assertEquals(75 * 60_000L, s.durationMs());
+    }
 }

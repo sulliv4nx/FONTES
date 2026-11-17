@@ -16,6 +16,9 @@ public class Session {
     /** Records battus pendant la séance (texte prêt à afficher). */
     public List<String> records = new ArrayList<>();
 
+    /** Durée saisie à la main pour une séance notée après coup (minutes, 0 = chronomètre). */
+    public int manualMinutes;
+
     public boolean inProgress() {
         return end == 0;
     }
@@ -35,6 +38,7 @@ public class Session {
     }
 
     public long durationMs() {
+        if (end == 0 && manualMinutes > 0) return manualMinutes * 60_000L;
         long stop = end == 0 ? System.currentTimeMillis() : end;
         return Math.max(0, stop - start);
     }

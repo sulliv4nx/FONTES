@@ -70,6 +70,9 @@ public class HistoryScreen extends Screen {
             c.addView(t);
             return Ui.page(a, c);
         }
+        TextView tip = Ui.text(a, "Appui long sur une séance pour changer sa date ou la supprimer.", 12, Ui.FAINT);
+        tip.setPadding(0, Ui.dp(4), 0, 0);
+        c.addView(tip);
         String month = null;
         int n = Math.min(limit, entries.size());
         for (int i = 0; i < n; i++) {
@@ -94,6 +97,15 @@ public class HistoryScreen extends Screen {
         return Ui.page(a, c);
     }
 
+    /** Appui long sur une séance : changer sa date ou la supprimer. */
+    private void menu(String title, Runnable when, Runnable delete) {
+        new android.app.AlertDialog.Builder(a).setTitle(title)
+                .setItems(new String[]{"Modifier la date", "Supprimer"}, (d, w) -> {
+                    if (w == 0) when.run();
+                    else delete.run();
+                }).show();
+    }
+
     private LinearLayout header(LinearLayout card, String name, String badge, int color, int bg) {
         LinearLayout top = Ui.hbox(a);
         top.addView(Ui.medium(a, name, 16, Ui.TEXT), Ui.weight(1));
@@ -104,6 +116,10 @@ public class HistoryScreen extends Screen {
 
     private View sessionCard(Session s) {
         LinearLayout card = Ui.clickCard(a, v -> a.show(new SessionDetailScreen(s.id)));
+        card.setOnLongClickListener(v -> {
+            menu(s.name, () -> SessionDetailScreen.editWhen(a, s), () -> SessionDetailScreen.delete(a, s, a::refresh));
+            return true;
+        });
         header(card, s.name, s.records.isEmpty() ? "Muscu" : Fmt.plural(s.records.size(), "record"),
                 s.records.isEmpty() ? Ui.MUTED : Ui.ACCENT, s.records.isEmpty() ? Ui.SURFACE2 : Ui.ACCENT_SOFT);
         card.addView(Ui.text(a, Fmt.day(s.start), 13, Ui.MUTED));
@@ -124,10 +140,13 @@ public class HistoryScreen extends Screen {
             else Ui.info(a, r.wodName, r.fullScore() + (r.note != null ? "\n" + r.note : ""));
         });
         card.setOnLongClickListener(v -> {
-            Ui.confirm(a, "Supprimer ce score ?", r.wodName + " · " + r.fullScore(), "Supprimer", () -> {
+            menu(r.wodName, () -> WhenSheet.show(a, "Date du WOD", r.date, -1, (time, m) -> {
+                st.setWodDate(r, time);
+                a.refresh();
+            }), () -> Ui.confirm(a, "Supprimer ce score ?", r.wodName + " · " + r.fullScore(), "Supprimer", () -> {
                 st.deleteWodResult(r);
                 a.refresh();
-            });
+            }));
             return true;
         });
         header(card, r.wodName, "WOD", Ui.ACCENT, Ui.ACCENT_SOFT);
@@ -144,10 +163,13 @@ public class HistoryScreen extends Screen {
             if (com.fonte.carnet.core.Routines.find(l.routineId) != null) a.show(new RoutineScreen(l.routineId));
         });
         card.setOnLongClickListener(v -> {
-            Ui.confirm(a, "Supprimer ce circuit ?", l.name + " · " + Fmt.day(l.date), "Supprimer", () -> {
+            menu(l.name, () -> WhenSheet.show(a, "Date du circuit", l.date, -1, (time, m) -> {
+                st.setRenfoDate(l, time);
+                a.refresh();
+            }), () -> Ui.confirm(a, "Supprimer ce circuit ?", l.name + " · " + Fmt.day(l.date), "Supprimer", () -> {
                 st.deleteRenfo(l);
                 a.refresh();
-            });
+            }));
             return true;
         });
         header(card, l.name, "Renfo", Ui.OK, Ui.OK_SOFT);

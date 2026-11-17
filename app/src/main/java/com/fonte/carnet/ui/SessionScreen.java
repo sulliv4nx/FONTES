@@ -57,8 +57,15 @@ public class SessionScreen extends Screen {
         elapsed = Ui.medium(a, "0:00", 24, Ui.TEXT);
         Ui.tabular(elapsed);
         timeBox.addView(elapsed);
-        timeBox.addView(Ui.text(a, "Durée de la séance", 12, Ui.MUTED));
+        boolean today = com.fonte.carnet.core.Days.key(s.start) == com.fonte.carnet.core.Days.today();
+        timeBox.addView(Ui.text(a, s.manualMinutes > 0 ? "Durée saisie" : "Durée de la séance", 12, Ui.MUTED));
         top.addView(timeBox, Ui.weight(1));
+        // Date de la séance : à changer pour une séance faite plus tôt et notée après coup.
+        TextView when = Ui.chip(a, today && s.manualMinutes == 0 ? "Aujourd'hui" : Fmt.shortDay(s.start), false, v -> editWhen(s));
+        when.setContentDescription("Date de la séance : " + Fmt.day(s.start) + ". Toucher pour la changer.");
+        LinearLayout.LayoutParams wl = Ui.lp(-2, -2);
+        wl.rightMargin = Ui.dp(6);
+        top.addView(when, wl);
         int rest = st.settings.restSeconds > 0 ? st.settings.restSeconds : 90;
         TextView restButton = Ui.chip(a, "Repos " + Fmt.clock(rest * 1000L), false, v -> a.startRest(rest));
         restButton.setLayoutParams(Ui.lp(-2, -2));
@@ -176,6 +183,13 @@ public class SessionScreen extends Screen {
         head.addView(name, Ui.weight(1));
         head.addView(Ui.iconButton(a, Icon.MORE, Ui.MUTED, v -> exerciseMenu(s, idx)));
         card.addView(head);
+        if (e.note != null || e.restSec > 0) {
+            String info = (e.note != null ? e.note : "") + (e.restSec > 0 ? (e.note != null ? " · " : "") + "repos "
+                    + Fmt.clock(e.restSec * 1000L) : "");
+            TextView nt = Ui.text(a, info, 13, Ui.ACCENT);
+            nt.setPadding(Ui.dp(2), 0, Ui.dp(8), Ui.dp(4));
+            card.addView(nt);
+        }
 
         List<SetEntry> last = Stats.lastPerformance(e.exerciseId, st.sessions, s.id);
         if (last != null && !last.isEmpty()) {
@@ -278,7 +292,13 @@ public class SessionScreen extends Screen {
                     String msg = Stats.liveRecord(set, prev.get(e.exerciseId), Stats.sessionBest(cur, e.exerciseId, set));
                     if (msg != null) Ui.toast(a, "🏆 " + msg);
                 }
-                if (st.settings.restSeconds > 0) a.startRest(st.settings.restSeconds);
+                int rest = e.restSec > 0 ? e.restSec : st.settings.restSeconds;
+                if (rest > 0) a.startRest(rest);
+                if (fillBackoff(e, set)) {
+                    st.save();
+                    refill();
+                    return;
+                }
             } else {
                 set.done = false;
             }
@@ -289,6 +309,37 @@ public class SessionScreen extends Screen {
         p3.leftMargin = Ui.dp(8);
         row.addView(check, p3);
         return row;
+    }
+
+    /** Top set validé : les back-off encore vides prennent sa charge moins le pourcentage du coach. */
+    private boolean fillBackoff(ExerciseEntry e, SetEntry top) {
+        if (top.weight <= 0) return false;
+        boolean changed = false;
+        boolean after = false;
+        for (SetEntry x : e.sets) {
+            if (x == top) {
+                after = true;
+                continue;
+            }
+            if (!after || x.done || x.weight > 0 || x.label == null) continue;
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)back-off\\s*[−-]\\s*(\\d{1,2})\\s*%").matcher(x.label);
+            if (!m.find()) continue;
+            int p = Integer.parseInt(m.group(1));
+            x.weight = com.fonte.carnet.core.Programs.round(top.weight * (100 - p) / 100.0, st.settings.rounding);
+            changed = true;
+        }
+        if (changed) Ui.toast(a, "Back-off calculé à partir de ton top set");
+        return changed;
+    }
+
+    private void editWhen(Session s) {
+        int min = s.manualMinutes > 0 ? s.manualMinutes : (int) (s.durationMs() / 60_000L);
+        if (min < 10) min = 60;
+        WhenSheet.show(a, "Date de la séance", s.start, min, (time, minutes) -> {
+            st.setSessionTime(s, time, minutes);
+            Ui.toast(a, "Séance du " + Fmt.day(time));
+            a.refresh();
+        });
     }
 
     private void addSet(ExerciseEntry e) {
@@ -392,9 +443,15 @@ public class SessionScreen extends Screen {
     public void onAction() {
         Session s = st.current;
         if (s == null) return;
-        String[] items = {"Renommer la séance", "Enregistrer comme modèle", "Abandonner la séance"};
+        String[] items = {"Renommer la séance", "Date et heure (séance faite plus tôt)", "Enregistrer comme modèle",
+                "Abandonner la séance"};
         new AlertDialog.Builder(a)
                 .setItems(items, (d, w) -> {
+                    if (w == 1) {
+                        editWhen(s);
+                        return;
+                    }
+                    if (w > 1) w--;
                     if (w == 0) {
                         Ui.prompt(a, "Nom de la séance", s.name, "Nom", n -> {
                             s.name = n;

@@ -288,7 +288,9 @@ public final class Store {
             save();
             return null;
         }
-        s.end = System.currentTimeMillis();
+        // Séance notée après coup : sa durée saisie, sinon le chronomètre.
+        s.end = s.manualMinutes > 0 ? s.start + s.manualMinutes * 60_000L : System.currentTimeMillis();
+        s.manualMinutes = 0;
         s.records = Stats.newRecords(s, sessions, names());
         Program.Day day = programDay(s);
         if (day != null && !day.isDone()) day.sessionId = s.id;
@@ -308,6 +310,37 @@ public final class Store {
         sessions.remove(s);
         removeCardio(s.id);
         if (program != null) for (Program.Day d : program.days) if (d.sessionId == s.id) d.sessionId = 0;
+        save();
+    }
+
+    /**
+     * Date, heure de début et durée d'une séance (faite plus tôt, ou mal datée). Le cardio de la séance suit.
+     *
+     * @param minutes durée en minutes (au moins 1)
+     */
+    public void setSessionTime(Session s, long start, int minutes) {
+        minutes = Math.max(1, Math.min(600, minutes));
+        s.start = start;
+        if (s.inProgress()) s.manualMinutes = minutes;
+        else s.end = start + minutes * 60_000L;
+        for (BodyLog.Activity a : activities) {
+            if (a.sessionId != s.id) continue;
+            a.day = Days.key(start);
+            a.time = s.inProgress() ? start : s.end;
+        }
+        sortSessions();
+        save();
+    }
+
+    public void setWodDate(WodResult r, long date) {
+        r.date = date;
+        sortSessions();
+        save();
+    }
+
+    public void setRenfoDate(RenfoLog l, long date) {
+        l.date = date;
+        sortSessions();
         save();
     }
 

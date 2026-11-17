@@ -97,6 +97,25 @@ final class CardioSheet {
             dist.setText("m".equals(Cardio.unit(kind[0])) ? String.valueOf(act.meters) : Fmt.kg(act.meters / 1000.0));
         }
 
+        // Cardio seul (CrossFit, Renfo) : il peut avoir été fait un autre jour.
+        long[] when = {act.time == 0 ? System.currentTimeMillis() : act.time};
+        if (act.sessionId == 0) {
+            TextView dateValue = Ui.medium(a, Fmt.day(when[0]), 15, Ui.TEXT);
+            dateValue.setBackground(Ui.rect(Ui.SURFACE2, 8));
+            dateValue.setPadding(Ui.dp(10), Ui.dp(6), Ui.dp(10), Ui.dp(6));
+            LinearLayout dateRow = Ui.hbox(a);
+            dateRow.setGravity(Gravity.CENTER_VERTICAL);
+            dateRow.setMinimumHeight(Ui.dp(48));
+            dateRow.setPadding(0, Ui.dp(6), 0, 0);
+            dateRow.addView(Ui.text(a, "Date", 15, Ui.TEXT), Ui.weight(1));
+            dateRow.addView(dateValue);
+            dateRow.setOnClickListener(v -> WhenSheet.show(a, "Date du cardio", when[0], -1, (time, m) -> {
+                when[0] = time;
+                dateValue.setText(Fmt.day(time));
+            }));
+            box.addView(dateRow);
+        }
+
         EditText shown = Ui.field(a, "facultatif", Ui.INTEGER);
         if (act.shownKcal > 0) shown.setText(String.valueOf(act.shownKcal));
         LinearLayout shownBox = Ui.labelled(a, "Calories affichées par l'ergo ou la montre", shown);
@@ -202,6 +221,10 @@ final class CardioSheet {
             act.shownKcal = Math.max(0, Fmt.parseInt(shown.getText().toString()));
             act.kcal = Cardio.netKcal(act.kind, act.intensity, m, act.shownKcal, weight);
             act.planned = false;
+            if (act.sessionId == 0) {
+                act.time = when[0];
+                act.day = Days.key(when[0]);
+            }
             a.store.addCardio(act);
             Ui.hideKeyboard(minutes);
             d.dismiss();

@@ -136,6 +136,11 @@ public class CoachScreen extends Screen {
             TextView sum = Ui.text(a, it.summary() + (known ? "" : " · nouvel exercice"), 14, known ? Ui.ACCENT : Ui.MUTED);
             Ui.tabular(sum);
             txt.addView(sum);
+            if (it.note != null || it.rest > 0) {
+                String info = (it.note != null ? it.note : "") + (it.rest > 0 ? (it.note != null ? " · " : "") + "repos "
+                        + com.fonte.carnet.core.Fmt.clock(it.rest * 1000L) : "");
+                txt.addView(Ui.text(a, info, 12, Ui.MUTED));
+            }
             line.addView(txt, Ui.weight(1));
             card.addView(line);
             c.addView(card);

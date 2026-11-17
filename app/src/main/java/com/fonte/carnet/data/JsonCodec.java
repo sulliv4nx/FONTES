@@ -875,6 +875,7 @@ final class JsonCodec {
         j.put("name", x.name);
         j.put("start", x.start);
         j.put("end", x.end);
+        if (x.manualMinutes > 0) j.put("manualMin", x.manualMinutes);
         j.put("programKey", x.programKey);
         j.put("programDay", x.programDay);
         j.put("exercises", entries(x.exercises));
@@ -892,6 +893,7 @@ final class JsonCodec {
         x.name = j.optString("name", "Séance");
         x.start = j.getLong("start");
         x.end = j.optLong("end", 0);
+        x.manualMinutes = Math.max(0, j.optInt("manualMin", 0));
         x.programKey = j.optLong("programKey", 0);
         x.programDay = j.optInt("programDay", -1);
         readEntries(j.optJSONArray("exercises"), x.exercises);
@@ -916,6 +918,8 @@ final class JsonCodec {
                 sets.put(sj);
             }
             j.put("sets", sets);
+            if (e.note != null) j.put("note", e.note);
+            if (e.restSec > 0) j.put("rest", e.restSec);
             a.put(j);
         }
         return a;
@@ -937,6 +941,8 @@ final class JsonCodec {
                     e.sets.add(s);
                 }
             }
+            e.note = j.has("note") ? j.optString("note", null) : null;
+            e.restSec = Math.max(0, Math.min(1800, j.optInt("rest", 0)));
             out.add(e);
         }
     }

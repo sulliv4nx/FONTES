@@ -94,13 +94,35 @@ public class SessionDetailScreen extends Screen {
         return Ui.page(a, c);
     }
 
+    /** Date, heure et durée d'une séance terminée. */
+    static void editWhen(MainActivity a, Session s) {
+        WhenSheet.show(a, "Date de la séance", s.start, (int) Math.max(1, s.durationMs() / 60_000L), (time, minutes) -> {
+            a.store.setSessionTime(s, time, minutes);
+            Ui.toast(a, "Séance déplacée au " + com.fonte.carnet.core.Fmt.day(time));
+            a.refresh();
+        });
+    }
+
+    /** Confirmation puis suppression d'une séance terminée. */
+    static void delete(MainActivity a, Session s, Runnable after) {
+        Ui.confirm(a, "Supprimer cette séance ?", "Elle sera retirée de l'historique et des records.", "Supprimer", () -> {
+            a.store.deleteSession(s);
+            if (after != null) after.run();
+        });
+    }
+
     @Override
     public void onAction() {
         Session s = st.session(id);
         if (s == null) return;
-        String[] items = {"Refaire cette séance", "Enregistrer comme modèle", "Supprimer la séance"};
+        String[] items = {"Modifier la date et l'heure", "Refaire cette séance", "Enregistrer comme modèle", "Supprimer la séance"};
         new AlertDialog.Builder(a)
                 .setItems(items, (d, w) -> {
+                    if (w == 0) {
+                        editWhen(a, s);
+                        return;
+                    }
+                    w--;
                     if (w == 0) {
                         a.startSession(s.name, s.exercises, 0, -1);
                     } else if (w == 1) {
@@ -109,11 +131,7 @@ public class SessionDetailScreen extends Screen {
                             Ui.toast(a, "Modèle enregistré : retrouve-le dans Programmes.");
                         });
                     } else {
-                        Ui.confirm(a, "Supprimer cette séance ?", "Elle sera retirée de l'historique et des records.",
-                                "Supprimer", () -> {
-                                    st.deleteSession(s);
-                                    a.back();
-                                });
+                        delete(a, s, a::back);
                     }
                 })
                 .show();
